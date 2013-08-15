@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "AAAAXn//82c\u003d",
+        "filename": "include/cppunit/plugin/PlugInManager.h",
+        "patchSetId": 1
+      },
+      "lineNbr": 78,
+      "author": {
+        "id": 1000045
+      },
+      "writtenOn": "2013-08-15T06:39:39Z",
+      "side": 1,
+      "message": "In addition, the below\n\n  #pragma GCC diagnostic pop\n\nshould be paired with a\n\n  #pragma GCC diagnotic push\n\nup here, but all those diagnostic pragmas are relatively new in GCC, so you must not presume that GCC understands them (which leads to additional warnings about unknown pragmas, plus -Weffc++ warnings that failed to get ignored).\n\nNot sure if being able to compile cppunit with -Weffc++ (which, after all, is not part of -Wall for a reason) is worth any elaborate configuration scheme to get these pragmas visible for exactly the right GCC versions.  (That does not necessarily mean that the other modifications made by this patch set should not go in, of course.)",
+      "parentUuid": "AAAAXn//82s\u003d",
+      "revId": "4416806a8b1a7e17af272763fda1fe98490c711b",
+      "serverId": "6622c302-437a-49ad-a91d-55ba7dcf1615",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "AAAAXn//82o\u003d",
         "filename": "src/cppunit/XmlDocument.cpp",
         "patchSetId": 1
