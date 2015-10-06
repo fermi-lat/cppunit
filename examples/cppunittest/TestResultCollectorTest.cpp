@@ -54,12 +54,12 @@ TestResultCollectorTest::testAddTwoErrors()
   {
     CPPUNIT_NS::TestFailure failure1( m_test, 
                                    new CPPUNIT_NS::Exception( errorMessage1 ),
-                                   true );
+                                   CPPUNIT_NS::TestFailure::ERROR );
     m_result->addFailure( failure1 );
 
     CPPUNIT_NS::TestFailure failure2( m_test2, 
                                    new CPPUNIT_NS::Exception( errorMessage2 ),
-                                   true );
+                                   CPPUNIT_NS::TestFailure::ERROR );
     m_result->addFailure( failure2 );
   } // ensure that the test result duplicate the failures.
 
@@ -67,11 +67,11 @@ TestResultCollectorTest::testAddTwoErrors()
   checkFailure( m_result->failures()[0],
                 errorMessage1,
                 m_test,
-                true );
+                CPPUNIT_NS::TestFailure::ERROR );
   checkFailure( m_result->failures()[1],
                 errorMessage2,
                 m_test2,
-                true );
+                CPPUNIT_NS::TestFailure::ERROR );
 }
 
 
@@ -83,23 +83,23 @@ TestResultCollectorTest::testAddTwoFailures()
   {
     CPPUNIT_NS::TestFailure failure1( m_test, 
                                    new CPPUNIT_NS::Exception( errorMessage1 ),
-                                   false );
+                                   CPPUNIT_NS::TestFailure::ASSERT );
     m_result->addFailure( failure1 );
 
     CPPUNIT_NS::TestFailure failure2( m_test2, 
                                    new CPPUNIT_NS::Exception( errorMessage2 ),
-                                   false );
+                                   CPPUNIT_NS::TestFailure::ASSERT );
     m_result->addFailure( failure2 );
   } // ensure that the test result duplicate the failures.
   checkResult( 2, 0, 0 );
   checkFailure( m_result->failures()[0],
                 errorMessage1,
                 m_test,
-                false );
+                CPPUNIT_NS::TestFailure::ASSERT );
   checkFailure( m_result->failures()[1],
                 errorMessage2,
                 m_test2,
-                false );
+                CPPUNIT_NS::TestFailure::ASSERT );
 }
 
 
@@ -160,7 +160,8 @@ TestResultCollectorTest::testWasSuccessfulWithSuccessfulTest()
 void 
 TestResultCollectorTest::testSynchronizationAddFailure()
 {
-  addFailure( "Failure1", m_test, false, m_synchronizedResult );
+  addFailure( "Failure1", m_test, CPPUNIT_NS::TestFailure::ASSERT,
+              m_synchronizedResult );
   checkSynchronization();
 }
 
@@ -273,25 +274,25 @@ TestResultCollectorTest::checkSynchronization()
 void 
 TestResultCollectorTest::addFailure( std::string message )
 {
-  addFailure( message, m_test, false, m_result );
+  addFailure( message, m_test, CPPUNIT_NS::TestFailure::ASSERT, m_result );
 }
 
 
 void 
 TestResultCollectorTest::addError( std::string message )
 {
-  addFailure( message, m_test, true, m_result );
+  addFailure( message, m_test, CPPUNIT_NS::TestFailure::ERROR, m_result );
 }
 
 
 void 
 TestResultCollectorTest::addFailure( std::string message, 
                                      CPPUNIT_NS::Test *failedTest, 
-                                     bool isError,
+                                     CPPUNIT_NS::TestFailure::FailureType type,
                                      CPPUNIT_NS::TestResultCollector *result )
 {
   CPPUNIT_NS::TestFailure failure( failedTest, 
                                 new CPPUNIT_NS::Exception( CPPUNIT_NS::Message( message ) ), 
-                                isError );
+                                type );
   result->addFailure( failure );
 }

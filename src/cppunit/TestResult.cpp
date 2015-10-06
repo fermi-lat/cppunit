@@ -42,7 +42,7 @@ void
 TestResult::addError( Test *test, 
                       Exception *e )
 { 
-  TestFailure failure( test, e, true );
+  TestFailure failure( test, e, TestFailure::ERROR );
   addFailure( failure );
 }
 
@@ -50,7 +50,7 @@ TestResult::addError( Test *test,
 void 
 TestResult::addFailure( Test *test, Exception *e )
 { 
-  TestFailure failure( test, e, false );
+  TestFailure failure( test, e, TestFailure::ASSERT );
   addFailure( failure );
 }
 

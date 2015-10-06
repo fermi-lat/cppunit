@@ -8,10 +8,10 @@ CPPUNIT_NS_BEGIN
 /// Constructs a TestFailure with the given test and exception.
 TestFailure::TestFailure( Test *failedTest, 
                           Exception *thrownException,
-                          bool isError ) :
+                          FailureType type ) :
     m_failedTest( failedTest ), 
     m_thrownException( thrownException ),
-    m_isError( isError )
+    m_failureType( type )
 {
 }
 
@@ -45,11 +45,19 @@ TestFailure::sourceLine() const
 }
 
 
-/// Indicates if the failure is a failed assertion or an error.
+/// Indicates if the failure is actually an unexpected error.
 bool 
 TestFailure::isError() const
 {
-  return m_isError;
+  return m_failureType == ERROR;
+}
+
+
+/// Returns the type of the failure
+TestFailure::FailureType
+TestFailure::getFailureType() const
+{
+  return m_failureType;
 }
 
 
@@ -64,7 +72,8 @@ TestFailure::failedTestName() const
 TestFailure *
 TestFailure::clone() const
 {
-  return new TestFailure( m_failedTest, m_thrownException->clone(), m_isError );
+  return new TestFailure( m_failedTest,
+                          m_thrownException->clone(), m_failureType );
 }
 
 

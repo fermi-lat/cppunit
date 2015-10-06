@@ -36,7 +36,8 @@ TestFailureTest::testConstructorAndGetters()
 {
   CPPUNIT_NS::TestCase test;
   CPPUNIT_NS::Exception *error = new ObservedException( this );
-  checkTestFailure( &test, error, false );
+  checkTestFailure( &test, error,
+                    CPPUNIT_NS::TestFailure::ASSERT );
   CPPUNIT_ASSERT( m_exceptionDestroyed );
 }
 
@@ -46,7 +47,8 @@ TestFailureTest::testConstructorAndGettersForError()
 {
   CPPUNIT_NS::TestCase test;
   CPPUNIT_NS::Exception *error = new ObservedException( this );
-  checkTestFailure( &test, error, true );
+  checkTestFailure( &test, error,
+                    CPPUNIT_NS::TestFailure::ERROR );
   CPPUNIT_ASSERT( m_exceptionDestroyed );
 }
 
@@ -58,13 +60,13 @@ TestFailureTest::exceptionDestroyed()
 }
 
 
-void 
+void
 TestFailureTest::checkTestFailure( CPPUNIT_NS::Test *test, 
                                    CPPUNIT_NS::Exception *error,
-                                   bool isError )
+                                   CPPUNIT_NS::TestFailure::FailureType type )
 {
-  CPPUNIT_NS::TestFailure failure( test, error, isError );
+  CPPUNIT_NS::TestFailure failure( test, error, type );
   CPPUNIT_ASSERT_EQUAL( test, failure.failedTest() );
   CPPUNIT_ASSERT_EQUAL( error, failure.thrownException() );
-  CPPUNIT_ASSERT_EQUAL( isError, failure.isError() );
+  CPPUNIT_ASSERT_EQUAL( type, failure.getFailureType() );
 }

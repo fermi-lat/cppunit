@@ -24,9 +24,15 @@ class Test;
 class CPPUNIT_API TestFailure 
 {
 public:
+  enum FailureType
+  {
+    ASSERT,          ///< An expected failure from an CppUnit assertion
+    ERROR            ///< An unexpected error from the test case
+  };
+
   TestFailure( Test *failedTest,
                Exception *thrownException,
-               bool isError );
+               FailureType type );
 
   virtual ~TestFailure ();
 
@@ -38,6 +44,8 @@ public:
 
   virtual bool isError() const;
 
+  virtual FailureType getFailureType() const;
+
   virtual std::string failedTestName() const;
 
   virtual TestFailure *clone() const;
@@ -45,7 +53,7 @@ public:
 protected:
   Test *m_failedTest;
   Exception *m_thrownException;
-  bool m_isError;
+  FailureType m_failureType;
 
 private: 
   TestFailure( const TestFailure &other ); 

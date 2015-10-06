@@ -64,7 +64,7 @@ private:
   void addGenericTestFailure( std::string testName,
                               CPPUNIT_NS::Message message,
                               CPPUNIT_NS::SourceLine sourceLine,
-                              bool isError );
+                              CPPUNIT_NS::TestFailure::FailureType type );
 
   CPPUNIT_NS::Test *makeDummyTest( std::string testName );
 

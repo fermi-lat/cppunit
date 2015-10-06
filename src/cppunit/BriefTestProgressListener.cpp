@@ -1,6 +1,7 @@
 #include <cppunit/BriefTestProgressListener.h>
 #include <cppunit/Test.h>
 #include <cppunit/TestFailure.h>
+#include <cppunit/TestLeaf.h>
 #include <cppunit/portability/Stream.h>
 
 

@@ -312,21 +312,23 @@ XmlOutputterTest::addTest( std::string testName )
 }
 
 
-void 
+void
 XmlOutputterTest::addTestFailure( std::string testName,
                                   std::string message,
                                   CPPUNIT_NS::SourceLine sourceLine )
 {
-  addGenericTestFailure( testName, CPPUNIT_NS::Message(message), sourceLine, false );
+  addGenericTestFailure( testName, CPPUNIT_NS::Message(message), sourceLine,
+                         CPPUNIT_NS::TestFailure::ASSERT );
 }
 
 
-void 
+void
 XmlOutputterTest::addTestError( std::string testName,
                                 std::string message,
                                 CPPUNIT_NS::SourceLine sourceLine )
 {
-  addGenericTestFailure( testName, CPPUNIT_NS::Message(message), sourceLine, true );
+  addGenericTestFailure( testName, CPPUNIT_NS::Message(message), sourceLine,
+                         CPPUNIT_NS::TestFailure::ERROR );
 }
 
 
@@ -334,13 +336,13 @@ void
 XmlOutputterTest::addGenericTestFailure(  std::string testName,
                                           CPPUNIT_NS::Message message,
                                           CPPUNIT_NS::SourceLine sourceLine,
-                                          bool isError )
+                                          CPPUNIT_NS::TestFailure::FailureType type )
 {
   CPPUNIT_NS::Test *test = makeDummyTest( testName );
   m_result->startTest( test );
   CPPUNIT_NS::TestFailure failure( test, 
                                 new CPPUNIT_NS::Exception( message, sourceLine ),
-                                isError );
+                                type );
   m_result->addFailure( failure );
   m_result->endTest( test );
 }

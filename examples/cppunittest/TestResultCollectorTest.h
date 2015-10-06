@@ -79,7 +79,7 @@ private:
   void addError( std::string message );
   void addFailure( std::string message, 
                    CPPUNIT_NS::Test *failedTest, 
-                   bool isError,
+                   CPPUNIT_NS::TestFailure::FailureType type,
                    CPPUNIT_NS::TestResultCollector *result );
 
 private:

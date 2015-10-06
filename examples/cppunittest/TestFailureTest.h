@@ -2,6 +2,7 @@
 #define TESTFAILURETEST_H
 
 #include <cppunit/extensions/HelperMacros.h>
+#include <cppunit/TestFailure.h>
 
 
 class TestFailureTest : public CPPUNIT_NS::TestFixture
@@ -46,7 +47,7 @@ private:
   void operator =( const TestFailureTest &copy );
   void checkTestFailure( CPPUNIT_NS::Test *test, 
                          CPPUNIT_NS::Exception *error,
-                         bool isError );
+                         CPPUNIT_NS::TestFailure::FailureType type );
 
 private:
   bool m_exceptionDestroyed;
