@@ -57,6 +57,7 @@ public:
   virtual int testFailures() const;
   virtual int testFailuresTotal() const;
   virtual int testFailuresExpected() const;
+  virtual int testUnexpectedPasses() const;
 
   virtual const TestFailures& failures() const;
   virtual const Tests &tests() const;
@@ -68,6 +69,7 @@ protected:
   TestFailures m_failures;
   int m_testErrors;
   int m_expectedFailures;
+  int m_unexpectedPasses;
 
 private:
   /// Prevents the use of the copy constructor.

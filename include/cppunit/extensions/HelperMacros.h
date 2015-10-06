@@ -6,6 +6,7 @@
 #ifndef CPPUNIT_EXTENSIONS_HELPERMACROS_H
 #define CPPUNIT_EXTENSIONS_HELPERMACROS_H
 
+#include <cppunit/SourceLine.h>
 #include <cppunit/TestCaller.h>
 #include <cppunit/TestSuite.h>
 #include <cppunit/extensions/AutoRegisterSuite.h>
@@ -317,15 +318,16 @@ public:									       \
  *                   type: void testMethod();
  * \see  CPPUNIT_TEST_SUITE.
  */
-#define CPPUNIT_TEST_XFAIL( testMethod )                      \
-    do {                                                      \
-        CPPUNIT_NS::TestCaller<TestFixtureType> *test_ =      \
-            new CPPUNIT_NS::TestCaller<TestFixtureType>(      \
-                      context.getTestNameFor( #testMethod),   \
-                      &TestFixtureType::testMethod,           \
-                      context.makeFixture() );                \
-        test_->setExpectedFailure();                          \
-        CPPUNIT_TEST_SUITE_ADD_TEST( test_ );                 \
+#define CPPUNIT_TEST_XFAIL( testMethod )                               \
+    do {                                                               \
+        CPPUNIT_NS::TestCaller<TestFixtureType> *test_ =               \
+            new CPPUNIT_NS::TestCaller<TestFixtureType>(               \
+                      context.getTestNameFor( #testMethod),            \
+                      &TestFixtureType::testMethod,                    \
+                      context.makeFixture(),                           \
+                      CPPUNIT_NS::SourceLine( __FILE__, __LINE__ ) );  \
+        test_->setExpectedFailure();                                   \
+        CPPUNIT_TEST_SUITE_ADD_TEST( test_ );                          \
     } while (0)
 
 /*! \brief Add a test which fail if the specified exception is not caught.

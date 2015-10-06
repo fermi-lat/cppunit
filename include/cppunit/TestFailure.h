@@ -27,7 +27,8 @@ public:
   enum FailureType
   {
     ASSERT,          ///< An expected failure from an CppUnit assertion
-    ERROR            ///< An unexpected error from the test case
+    ERROR,           ///< An unexpected error from the test case
+    UNEXPECTED_PASS  ///< An unexpected pass from the test case
   };
 
   TestFailure( Test *failedTest,
@@ -43,6 +44,8 @@ public:
   virtual SourceLine sourceLine() const;
 
   virtual bool isError() const;
+
+  virtual bool isUnexpectedPass() const;
 
   virtual bool isExpected() const;
 

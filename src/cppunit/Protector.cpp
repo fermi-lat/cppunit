@@ -49,6 +49,13 @@ Protector::reportFailure( const ProtectorContext &context,
 }
 
 
+void
+Protector::reportUnexpectedPass( const ProtectorContext &context ) const
+{
+  context.m_result->addUnexpectedPass( context.m_test );
+}
+
+
 Message 
 Protector::actualMessage( const Message &message,
                           const ProtectorContext &context ) const

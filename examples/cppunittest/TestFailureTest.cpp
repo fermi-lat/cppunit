@@ -54,6 +54,16 @@ TestFailureTest::testConstructorAndGettersForError()
 
 
 void 
+TestFailureTest::testConstructorAndGettersForUnexpectedPass()
+{
+  CPPUNIT_NS::TestCase test;
+  CPPUNIT_NS::Exception *error = new ObservedException( this );
+  checkTestFailure( &test, error,
+                    CPPUNIT_NS::TestFailure::UNEXPECTED_PASS );
+  CPPUNIT_ASSERT( m_exceptionDestroyed );
+}
+
+void
 TestFailureTest::exceptionDestroyed()
 {
   m_exceptionDestroyed = true;

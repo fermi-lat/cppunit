@@ -7,13 +7,18 @@ INCLUDES = -I$(top_builddir)/include -I$(top_srcdir)/include
 
 lib_LTLIBRARIES = libcppunit.la
 
+noinst_HEADERS = \
+  DefaultProtector.h \
+  ProtectorChain.h \
+  ProtectorContext.h \
+  TestCaseMethodFunctor.h
+
 libcppunit_la_SOURCES = \
   AdditionalMessage.cpp \
   Asserter.cpp \
   BeOsDynamicLibraryManager.cpp \
   BriefTestProgressListener.cpp \
   CompilerOutputter.cpp \
-  DefaultProtector.h \
   DefaultProtector.cpp \
   DynamicLibraryManager.cpp \
   DynamicLibraryManagerException.cpp \
@@ -23,8 +28,6 @@ libcppunit_la_SOURCES = \
   PlugInManager.cpp \
   PlugInParameters.cpp \
   Protector.cpp \
-  ProtectorChain.h \
-  ProtectorContext.h \
   ProtectorChain.cpp \
   SourceLine.cpp \
   StringTools.cpp \

@@ -1,4 +1,7 @@
+#include <cppunit/Exception.h>
+#include <cppunit/Message.h>
 #include <cppunit/Test.h>
+#include <cppunit/TestCase.h>
 #include <cppunit/TestFailure.h>
 #include <cppunit/TestListener.h>
 #include <cppunit/TestResult.h>
@@ -43,6 +46,16 @@ TestResult::addError( Test *test,
                       Exception *e )
 { 
   TestFailure failure( test, e, TestFailure::ERROR );
+  addFailure( failure );
+}
+
+
+void
+TestResult::addUnexpectedPass( Test *test )
+{
+  TestFailure failure( test, new Exception( Message( "unexpected pass" ),
+                       dynamic_cast< TestCase* >( test )->getDeclaration() ),
+                       TestFailure::UNEXPECTED_PASS );
   addFailure( failure );
 }
 

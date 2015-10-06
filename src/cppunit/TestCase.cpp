@@ -9,41 +9,18 @@
 #  include <typeinfo>
 #endif
 
+#include "TestCaseMethodFunctor.h"
+
+
 CPPUNIT_NS_BEGIN
-
-/*! \brief Functor to call test case method (Implementation).
- *
- * Implementation detail.
- */
-class TestCaseMethodFunctor : public Functor
-{
-public:
-  typedef void (TestCase::*Method)();
-
-  TestCaseMethodFunctor( TestCase *target,
-                         Method method )
-     : m_target( target )
-     , m_method( method )
-  {
-  }
-
-  bool operator()() const
-  {
-    (m_target->*m_method)();
-    return true;
-  }
-
-private:
-  TestCase *m_target;
-  Method m_method;
-};
 
 
 /** Constructs a test case.
  *  \param name the name of the TestCase.
  **/
-TestCase::TestCase( const std::string &name )
-    : m_name(name)
+TestCase::TestCase( const std::string &name, const SourceLine &line )
+    : m_name( name )
+    , m_declaration( line )
 {
 }
 
@@ -132,6 +109,14 @@ TestCase::getName() const
 { 
   return m_name; 
 }
-  
+
+
+/// Return the source line of the test function declaration
+const SourceLine&
+TestCase::getDeclaration() const
+{
+  return m_declaration;
+}
+
 
 CPPUNIT_NS_END

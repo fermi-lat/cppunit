@@ -29,7 +29,7 @@ void
 TestSuccessListener::addFailure( const TestFailure &failure )
 {
   ExclusiveZone zone( m_syncObject );
-  if ( !failure.isExpected() )
+  if ( !failure.isExpected() || failure.isUnexpectedPass() )
     m_success = false;
 }
 

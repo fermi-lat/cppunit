@@ -2,6 +2,7 @@
 #define CPPUNIT_TESTCASE_H
 
 #include <cppunit/Portability.h>
+#include <cppunit/SourceLine.h>
 #include <cppunit/TestLeaf.h>
 #include <cppunit/TestAssert.h>
 #include <cppunit/TestFixture.h>
@@ -29,7 +30,7 @@ class CPPUNIT_API TestCase : public TestLeaf,
 {
 public:
 
-    TestCase( const std::string &name );
+    TestCase( const std::string &name, const SourceLine &line = SourceLine() );
 
     TestCase();
 
@@ -41,6 +42,8 @@ public:
 
     //! FIXME: this should probably be pure virtual.
     virtual void runTest();
+
+    const SourceLine& getDeclaration() const;
     
 private:
     TestCase( const TestCase &other ); 
@@ -48,6 +51,7 @@ private:
     
 private:
     const std::string m_name;
+    const SourceLine m_declaration;
 };
 
 CPPUNIT_NS_END

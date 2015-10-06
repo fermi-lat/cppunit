@@ -188,7 +188,8 @@ CompilerOutputter::printStatistics()
             <<  "Failure total: "  <<  m_result->testFailuresTotal()  << "   "
             <<  "Failures: "  <<  m_result->testFailures()  << "   "
             <<  "Errors: "  <<  m_result->testErrors()  << "   "
-            <<  "Expected: " << m_result->testFailuresExpected()
+            <<  "Expected: " << m_result->testFailuresExpected()  << "   "
+            <<  "Unexpected passed: " << m_result->testUnexpectedPasses()
             <<  "\n";
 }
 

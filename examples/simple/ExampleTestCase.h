@@ -18,6 +18,7 @@ class ExampleTestCase : public CPPUNIT_NS::TestFixture
   CPPUNIT_TEST( testAdd );
   CPPUNIT_TEST( testEquals );
   CPPUNIT_TEST_XFAIL( testExpectedFail );
+  CPPUNIT_TEST_XFAIL( testUnexpectedPass );
   CPPUNIT_TEST_SUITE_END();
 
 protected:
@@ -33,6 +34,7 @@ protected:
   void testAdd();
   void testEquals();
   void testExpectedFail();
+  void testUnexpectedPass();
 };
 
 

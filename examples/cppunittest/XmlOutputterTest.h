@@ -61,6 +61,9 @@ private:
   void addTestError( std::string testName,
                      std::string message,
                      CPPUNIT_NS::SourceLine sourceLine = CPPUNIT_NS::SourceLine() );
+  void addTestUnexpectedPass( std::string testName,
+                              std::string message,
+                              CPPUNIT_NS::SourceLine sourceLine = CPPUNIT_NS::SourceLine() );
   void addGenericTestFailure( std::string testName,
                               CPPUNIT_NS::Message message,
                               CPPUNIT_NS::SourceLine sourceLine,

@@ -53,3 +53,9 @@ void ExampleTestCase::testExpectedFail()
 {
   CPPUNIT_ASSERT_EQUAL( 24, 42 );
 }
+
+
+void ExampleTestCase::testUnexpectedPass()
+{
+  CPPUNIT_ASSERT_EQUAL( 42, 42 );
+}

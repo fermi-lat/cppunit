@@ -11,6 +11,7 @@ TestResultCollector::TestResultCollector( SynchronizationObject *syncObject )
     , m_failures()
     , m_testErrors(0)
     , m_expectedFailures(0)
+    , m_unexpectedPasses(0)
 {
   reset();
 }
@@ -41,6 +42,7 @@ TestResultCollector::reset()
   freeFailures();
   m_testErrors = 0;
   m_expectedFailures = 0;
+  m_unexpectedPasses = 0;
   m_tests.clear();
 }
 
@@ -59,12 +61,19 @@ TestResultCollector::addFailure( const TestFailure &failure )
   TestSuccessListener::addFailure( failure );
 
   ExclusiveZone zone( m_syncObject ); 
+
   if ( failure.isError() )
     ++m_testErrors;
   if ( failure.isExpected() )
+  {
     ++m_expectedFailures;
-  else
-    m_failures.push_back( failure.clone() );
+    if ( failure.isUnexpectedPass() )
+      ++m_unexpectedPasses;
+    else
+      return;
+  }
+
+  m_failures.push_back( failure.clone() );
 }
 
 
@@ -91,8 +100,9 @@ int
 TestResultCollector::testFailures() const
 { 
   ExclusiveZone zone( m_syncObject ); 
-  return m_failures.size() - m_testErrors;
+  return m_failures.size() - m_testErrors - m_unexpectedPasses;
 }
+
 
 // Gets the number of expected failures (expected failed assertion).
 int
@@ -101,6 +111,16 @@ TestResultCollector::testFailuresExpected() const
   ExclusiveZone zone( m_syncObject );
   return m_expectedFailures;
 }
+
+
+// Gets the number of unexpected passes.
+int
+TestResultCollector::testUnexpectedPasses() const
+{
+  ExclusiveZone zone( m_syncObject );
+  return m_unexpectedPasses;
+}
+
 
 /// Gets the total number of detected failures.
 int 

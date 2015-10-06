@@ -1,6 +1,10 @@
 #include <cppunit/Exception.h>
+#include <cppunit/TestLeaf.h>
+#include <cppunit/TestFailure.h>
 #include <cppunit/extensions/TypeInfoHelper.h>
 #include "DefaultProtector.h"
+#include "ProtectorContext.h"
+#include "TestCaseMethodFunctor.h"
 
 
 CPPUNIT_NS_BEGIN
@@ -12,7 +16,17 @@ DefaultProtector::protect( const Functor &functor,
 {
   try
   {
-    return functor();
+    bool result = functor();
+
+    const TestCaseMethodFunctor *test_functor = dynamic_cast< const TestCaseMethodFunctor* >( &functor );
+    if ( !( test_functor && test_functor->isRunMethod() ) )
+      return result;
+
+    TestLeaf *test = dynamic_cast< TestLeaf* >( context.m_test );
+    if ( result && test && test->expectedFailure() )
+      reportUnexpectedPass( context );
+
+    return result;
   }
   catch ( Exception &failure )
   {

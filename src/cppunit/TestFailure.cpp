@@ -54,6 +54,14 @@ TestFailure::isError() const
 }
 
 
+/// Indicates if the failure is actually an unexpected pass.
+bool
+TestFailure::isUnexpectedPass() const
+{
+  return m_failureType == UNEXPECTED_PASS;
+}
+
+
 /// Indicates if the failure is expected and won't count as a failure.
 bool
 TestFailure::isExpected() const

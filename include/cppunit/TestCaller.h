@@ -12,6 +12,8 @@
 
 CPPUNIT_NS_BEGIN
 
+class SourceLine;
+
 #if 0
 /*! \brief Marker class indicating that no exception is expected by TestCaller.
  * This class is an implementation detail. You should never use this class directly.
@@ -112,11 +114,12 @@ public:
    * \param name name of this TestCaller
    * \param test the method this TestCaller calls in runTest()
    */
-  TestCaller( std::string name, TestMethod test ) :
-	    TestCase( name ), 
-	    m_ownFixture( true ),
-	    m_fixture( new Fixture() ),
-	    m_test( test )
+  TestCaller( std::string name, TestMethod test,
+              const SourceLine &line = SourceLine() )
+    : TestCase( name, line )
+    , m_ownFixture( true )
+    , m_fixture( new Fixture() )
+    , m_test( test )
   {
   }
 
@@ -129,11 +132,12 @@ public:
    * \param test the method this TestCaller calls in runTest()
    * \param fixture the Fixture to invoke the test method on.
    */
-  TestCaller(std::string name, TestMethod test, Fixture& fixture) :
-	    TestCase( name ), 
-	    m_ownFixture( false ),
-	    m_fixture( &fixture ),
-	    m_test( test )
+  TestCaller( std::string name, TestMethod test, Fixture& fixture,
+              const SourceLine &line = SourceLine() )
+    : TestCase( name, line )
+    , m_ownFixture( false )
+    , m_fixture( &fixture )
+    , m_test( test )
   {
   }
     
@@ -146,11 +150,12 @@ public:
    * \param test the method this TestCaller calls in runTest()
    * \param fixture the Fixture to invoke the test method on.
    */
-  TestCaller(std::string name, TestMethod test, Fixture* fixture) :
-	    TestCase( name ), 
-	    m_ownFixture( true ),
-	    m_fixture( fixture ),
-	    m_test( test )
+  TestCaller( std::string name, TestMethod test, Fixture* fixture,
+              const SourceLine &line = SourceLine() )
+    : TestCase( name, line )
+    , m_ownFixture( true )
+    , m_fixture( fixture )
+    , m_test( test )
   {
   }
     

@@ -10,6 +10,7 @@ class TestFailureTest : public CPPUNIT_NS::TestFixture
   CPPUNIT_TEST_SUITE( TestFailureTest );
   CPPUNIT_TEST( testConstructorAndGetters );
   CPPUNIT_TEST( testConstructorAndGettersForError );
+  CPPUNIT_TEST( testConstructorAndGettersForUnexpectedPass );
   CPPUNIT_TEST_SUITE_END();
 
 public:
@@ -21,6 +22,7 @@ public:
 
   void testConstructorAndGetters();
   void testConstructorAndGettersForError();
+  void testConstructorAndGettersForUnexpectedPass();
 
   void exceptionDestroyed();
 

@@ -60,6 +60,8 @@ protected:
                     const Message &message,
                     const SourceLine &sourceLine = SourceLine() ) const;
 
+  void reportUnexpectedPass( const ProtectorContext &context ) const;
+
   void reportFailure( const ProtectorContext &context,
                       const Exception &failure ) const;
 

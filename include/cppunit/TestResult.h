@@ -84,6 +84,9 @@ public:
    */
   virtual void addFailure( Test *test, Exception *e );
 
+  /// Adds an unexpected pass to the list of failures.
+  virtual void addUnexpectedPass( Test *test );
+
   /// Informs TestListener that a test was completed.
   virtual void endTest( Test *test );
 
