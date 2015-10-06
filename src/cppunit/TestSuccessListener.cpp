@@ -1,4 +1,5 @@
 #include <cppunit/TestSuccessListener.h>
+#include <cppunit/TestFailure.h>
 
 
 CPPUNIT_NS_BEGIN
@@ -25,10 +26,11 @@ TestSuccessListener::reset()
 
 
 void 
-TestSuccessListener::addFailure( const TestFailure & )
+TestSuccessListener::addFailure( const TestFailure &failure )
 {
   ExclusiveZone zone( m_syncObject );
-  m_success = false;
+  if ( !failure.isExpected() )
+    m_success = false;
 }
 
 

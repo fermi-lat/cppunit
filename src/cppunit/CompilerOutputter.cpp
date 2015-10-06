@@ -187,7 +187,8 @@ CompilerOutputter::printStatistics()
   m_stream  <<  "Run: "  <<  m_result->runTests()  << "   "
             <<  "Failure total: "  <<  m_result->testFailuresTotal()  << "   "
             <<  "Failures: "  <<  m_result->testFailures()  << "   "
-            <<  "Errors: "  <<  m_result->testErrors()
+            <<  "Errors: "  <<  m_result->testErrors()  << "   "
+            <<  "Expected: " << m_result->testFailuresExpected()
             <<  "\n";
 }
 

@@ -44,6 +44,8 @@ public:
 
   virtual bool isError() const;
 
+  virtual bool isExpected() const;
+
   virtual FailureType getFailureType() const;
 
   virtual std::string failedTestName() const;

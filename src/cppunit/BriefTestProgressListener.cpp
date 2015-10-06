@@ -32,7 +32,14 @@ BriefTestProgressListener::startTest( Test *test )
 void 
 BriefTestProgressListener::addFailure( const TestFailure &failure )
 {
-  stdCOut() << " : " << (failure.isError() ? "error" : "assertion");
+  if (failure.isError())
+    stdCOut() <<  " : error";
+  else
+  {
+    stdCOut() <<  " : assertion";
+    if (failure.isExpected())
+      stdCOut() <<  " (expected)";
+  }
   m_lastTestFailed  = true;
 }
 

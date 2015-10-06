@@ -16,11 +16,13 @@ void ExampleTestCase::anotherExample()
   CPPUNIT_ASSERT (1 == 2);
 }
 
+
 void ExampleTestCase::setUp()
 {
   m_value1 = 2.0;
   m_value2 = 3.0;
 }
+
 
 void ExampleTestCase::testAdd()
 {
@@ -44,4 +46,10 @@ void ExampleTestCase::testEquals()
   CPPUNIT_ASSERT( 12L == 12L );
   CPPUNIT_ASSERT_EQUAL( 12, 13 );
   CPPUNIT_ASSERT_DOUBLES_EQUAL( 12.0, 11.99, 0.5 );
+}
+
+
+void ExampleTestCase::testExpectedFail()
+{
+  CPPUNIT_ASSERT_EQUAL( 24, 42 );
 }

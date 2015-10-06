@@ -132,6 +132,7 @@ TextOutputter::printStatistics()
   m_stream  <<  "Run:  "  <<  m_result->runTests()
             <<  "   Failures: "  <<  m_result->testFailures()
             <<  "   Errors: "  <<  m_result->testErrors()
+            <<  "   Expected: " << m_result->testFailuresExpected()
             <<  "\n";
 }
 

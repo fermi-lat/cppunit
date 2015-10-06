@@ -10,6 +10,7 @@ TestResultCollector::TestResultCollector( SynchronizationObject *syncObject )
     , m_tests()
     , m_failures()
     , m_testErrors(0)
+    , m_expectedFailures(0)
 {
   reset();
 }
@@ -39,6 +40,7 @@ TestResultCollector::reset()
   ExclusiveZone zone( m_syncObject ); 
   freeFailures();
   m_testErrors = 0;
+  m_expectedFailures = 0;
   m_tests.clear();
 }
 
@@ -59,7 +61,10 @@ TestResultCollector::addFailure( const TestFailure &failure )
   ExclusiveZone zone( m_syncObject ); 
   if ( failure.isError() )
     ++m_testErrors;
-  m_failures.push_back( failure.clone() );
+  if ( failure.isExpected() )
+    ++m_expectedFailures;
+  else
+    m_failures.push_back( failure.clone() );
 }
 
 
@@ -89,6 +94,13 @@ TestResultCollector::testFailures() const
   return m_failures.size() - m_testErrors;
 }
 
+// Gets the number of expected failures (expected failed assertion).
+int
+TestResultCollector::testFailuresExpected() const
+{
+  ExclusiveZone zone( m_syncObject );
+  return m_expectedFailures;
+}
 
 /// Gets the total number of detected failures.
 int 

@@ -1,6 +1,7 @@
 #include <cppunit/Exception.h>
 #include <cppunit/Test.h>
 #include <cppunit/TestFailure.h>
+#include <cppunit/TestLeaf.h>
 
 CPPUNIT_NS_BEGIN
 
@@ -50,6 +51,15 @@ bool
 TestFailure::isError() const
 {
   return m_failureType == ERROR;
+}
+
+
+/// Indicates if the failure is expected and won't count as a failure.
+bool
+TestFailure::isExpected() const
+{
+  TestLeaf *test = dynamic_cast< TestLeaf* >( m_failedTest );
+  return ( test && test->expectedFailure() );
 }
 
 
