@@ -334,13 +334,14 @@ public:									       \
  *                      method.
  * \deprecated Use the assertion macro CPPUNIT_ASSERT_THROW instead.
  */
-#define CPPUNIT_TEST_EXCEPTION( testMethod, ExceptionType )          \
-  CPPUNIT_TEST_SUITE_ADD_TEST(                                        \
-      (new CPPUNIT_NS::ExceptionTestCaseDecorator< ExceptionType >(  \
-          new CPPUNIT_NS::TestCaller< TestFixtureType >(             \
+#define CPPUNIT_TEST_EXCEPTION( testMethod, ExceptionType )            \
+  CPPUNIT_TEST_SUITE_ADD_TEST(                                         \
+      (new CPPUNIT_NS::ExceptionTestCaseDecorator< ExceptionType >(    \
+          new CPPUNIT_NS::TestCaller< TestFixtureType >(               \
                                context.getTestNameFor( #testMethod ),  \
-                               &TestFixtureType::testMethod,         \
-                               context.makeFixture() ) ) ) )
+                               &TestFixtureType::testMethod,           \
+                               context.makeFixture() ),                \
+          CPPUNIT_NS::SourceLine( __FILE__, __LINE__ ) ) ) )
 
 /*! \brief Adds a test case which is excepted to fail.
  *

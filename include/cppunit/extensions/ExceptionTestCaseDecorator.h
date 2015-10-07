@@ -3,6 +3,7 @@
 
 #include <cppunit/Portability.h>
 #include <cppunit/Exception.h>
+#include <cppunit/SourceLine.h>
 #include <cppunit/extensions/TestCaseDecorator.h>
 
 CPPUNIT_NS_BEGIN
@@ -49,8 +50,8 @@ public:
   /*! \brief Decorates the specified test.
    * \param test TestCase to decorate. Assumes ownership of the test.
    */
-  ExceptionTestCaseDecorator( TestCase *test )
-      : TestCaseDecorator( test )
+  ExceptionTestCaseDecorator( TestCase *test, const SourceLine &line = SourceLine() )
+      : TestCaseDecorator( test ), m_line( line )
   {
   }
 
@@ -81,9 +82,9 @@ public:
                          "expected exception not thrown",
                          "Expected exception type: " + 
                            TypeInfoHelper::getClassName( 
-                               typeid( ExpectedExceptionType ) ) ) );
+                               typeid( ExpectedExceptionType ) ) ), m_line );
 #else
-      throw Exception( Message("expected exception not thrown") );
+      throw Exception( Message("expected exception not thrown"), m_line );
 #endif
   }
 
@@ -95,6 +96,8 @@ private:
   virtual void checkException( ExpectedExceptionType & )
   {
   }
+
+  const SourceLine m_line;
 };
 
 
