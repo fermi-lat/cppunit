@@ -5,11 +5,11 @@ CPPUNIT_NS_BEGIN
 
 
 void 
-assertDoubleEquals( double expected,
-                    double actual,
-                    double delta,
-                    SourceLine sourceLine,
-                    const std::string &message )
+assertEquals( double expected,
+              double actual,
+              double delta,
+              const std::string &message,
+              const SourceLine &sourceLine )
 {
   AdditionalMessage msg( "Delta   : " + 
                          assertion_traits<double>::toString(delta) );
@@ -40,6 +40,16 @@ assertDoubleEquals( double expected,
                             sourceLine, 
                             msg, 
                             "double equality assertion failed" );
+}
+
+void 
+assertDoubleEquals( double expected,
+                    double actual,
+                    double delta,
+                    SourceLine sourceLine,
+                    const std::string &message )
+{
+   return assertEquals( expected, actual, delta, message, sourceLine );
 }
 
 

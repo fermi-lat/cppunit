@@ -1,8 +1,15 @@
 #ifndef CPPUNIT_SOURCELINE_H
 #define CPPUNIT_SOURCELINE_H
 
+#if __cplusplus >= 201709L
+#  define HAVE_CXX2A 1
+#endif // __cplusplus >= 201709L
+
 #include <cppunit/Portability.h>
 #include <string>
+#if HAVE_CXX2A
+#include <experimental/source_location>
+#endif // HAVE_CXX2A
 
 /*! \brief Constructs a SourceLine object initialized with the location where the macro is expanded.
  * \ingroup CreatingNewAssertions
@@ -30,7 +37,17 @@ CPPUNIT_NS_BEGIN
 class CPPUNIT_API SourceLine
 {
 public:
-  SourceLine();
+#if HAVE_CXX2A
+  // For compatibility reasons captureLine is false (opt-out) by default
+  // and then enabled where appropriate (opt-in)
+  explicit SourceLine( bool captureLine = false, 
+                       const std::experimental::source_location &location
+                         = std::experimental::source_location::current() );
+#else
+  // Pre-c++20 compatibily is same as calling old default constructor
+  // captureLine is just ignored and file/line is initialized into invalid state
+  SourceLine( bool captureLine = false );
+#endif // HAVE_CXX2A
 
   // Ensure thread-safe copy by detaching the string buffer.
   SourceLine( const SourceLine &other );

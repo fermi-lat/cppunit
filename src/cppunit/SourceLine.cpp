@@ -4,11 +4,19 @@
 CPPUNIT_NS_BEGIN
 
 
-SourceLine::SourceLine() :
+#if HAVE_CXX2A
+SourceLine::SourceLine( bool captureLine, 
+                        const std::experimental::source_location &location ) 
+    : SourceLine( captureLine ? location.file_name() : "", captureLine ? location.line() : -1 )
+{
+}
+#else
+SourceLine::SourceLine( bool ) :
     m_fileName(),
     m_lineNumber( -1 )
 {
 }
+#endif // HAVE_CXX2A
 
 
 SourceLine::SourceLine( const SourceLine &other )
