@@ -25,6 +25,7 @@
  
 #include <cppunit/config/CppUnitApi.h>    // define CPPUNIT_API & CPPUNIT_NEED_DLL_DECL
 #include <cppunit/config/SelectDllLoader.h>
+#include <string>
 
 
 /* Options that the library user may switch on or off.
@@ -165,5 +166,15 @@
 #if !defined(CPPUNIT_WRAP_COLUMN)
 # define CPPUNIT_WRAP_COLUMN 79
 #endif
+
+
+CPPUNIT_NS_BEGIN
+
+
+std::string demangle(const std::string& name);
+
+
+CPPUNIT_NS_END
+
 
 #endif // CPPUNIT_PORTABILITY_H

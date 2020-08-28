@@ -21,6 +21,7 @@ libcppunit_la_SOURCES = \
   RepeatedTest.cpp \
   PlugInManager.cpp \
   PlugInParameters.cpp \
+  Portability.cpp \
   Protector.cpp \
   ProtectorChain.h \
   ProtectorContext.h \
