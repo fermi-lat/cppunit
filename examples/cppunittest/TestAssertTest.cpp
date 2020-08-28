@@ -1,6 +1,11 @@
 #include "CoreSuite.h"
+#include "MockTest.h"
 #include "TestAssertTest.h"
 #include <cppunit/portability/FloatingPoint.h>
+#include <cppunit/TestFailure.h>
+#include <cppunit/TestResult.h>
+#include <cppunit/TestResultCollector.h>
+#include <cppunit/TestRunner.h>
 #include <algorithm>
 #include <limits>
 
@@ -323,4 +328,70 @@ TestAssertTest::checkMessageContains( CPPUNIT_NS::Exception *e,
                           ", was: " + actual,
       std::search( actual.begin(), actual.end(), 
                    expected.begin(), expected.end() ) != actual.end() );
+}
+
+
+void
+TestAssertTest::testAssertExceptionDetail()
+{
+  // All checks should fail assertion
+  static const struct
+  {
+    const std::string expectedDetail;
+    const MockTest::Function function;
+  } 
+  checks[] = 
+  {
+    {
+      "Expected: " + CPPUNIT_NS::demangle( typeid( CPPUNIT_NS::Exception ).name() ),
+      [] { CPPUNIT_ASSERT_THROW( , CPPUNIT_NS::Exception ); }, 
+    },
+    {
+      "Expected: " + CPPUNIT_NS::demangle( typeid( CPPUNIT_NS::Exception ).name() ),
+      [] { CPPUNIT_ASSERT_THROW_MESSAGE( "msg", , CPPUNIT_NS::Exception ); },
+    },
+    {
+      "Caught: " + CPPUNIT_NS::demangle( typeid( CPPUNIT_NS::Exception ).name() ),
+      [] { CPPUNIT_ASSERT_NO_THROW( throw CPPUNIT_NS::Exception() ); },
+    },
+    {
+      "Caught: " + CPPUNIT_NS::demangle( typeid( CPPUNIT_NS::Exception ).name() ),
+      [] { CPPUNIT_ASSERT_NO_THROW_MESSAGE( "msg", throw CPPUNIT_NS::Exception() ); },
+    },
+  };
+
+  for ( const auto &check : checks )
+  {
+    CPPUNIT_NS::TestResult controller;
+    CPPUNIT_NS::TestResultCollector result;
+    controller.addListener( &result );
+    CPPUNIT_NS::TestRunner runner;
+
+    runner.addTest( new MockTest( check.function ) );
+    runner.run( controller );
+
+    CPPUNIT_ASSERT_EQUAL( 1, 
+                          result.testFailures() );
+
+    const CPPUNIT_NS::TestFailure *failure = *result.failures().begin();
+    CPPUNIT_ASSERT( failure != nullptr );
+
+    const CPPUNIT_NS::Exception *exception = failure->thrownException();
+    CPPUNIT_ASSERT( exception != nullptr );
+
+    const CPPUNIT_NS::Message message = exception->message();
+
+    bool detailFound = false;
+    for ( int i = 0; i < message.detailCount(); ++i )
+    {
+      if ( message.detailAt( i ) == check.expectedDetail )
+      {
+        detailFound = true;
+        break;
+      }
+    }
+
+    CPPUNIT_ASSERT_MESSAGE( "Was expecting detail: " + check.expectedDetail, 
+                            detailFound );
+  }
 }

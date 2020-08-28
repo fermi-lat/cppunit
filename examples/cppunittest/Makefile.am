@@ -52,12 +52,15 @@ cppunittestmain_SOURCES = \
 	TestFailureTest.h \
 	TestPathTest.h \
 	TestPathTest.cpp \
+	TestPortabilityTest.cpp \
 	TestResultCollectorTest.cpp \
 	TestResultCollectorTest.h \
 	TestResultTest.cpp \
 	TestResultTest.h \
 	TestSetUpTest.cpp \
 	TestSetUpTest.h \
+	TestSourceLineTest.cpp \
+	TestSourceLineTest.h \
 	TestSuiteTest.cpp \
 	TestSuiteTest.h \
 	TestTest.cpp \
