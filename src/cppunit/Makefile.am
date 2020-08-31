@@ -29,7 +29,6 @@ libcppunit_la_SOURCES = \
   StringTools.cpp \
   SynchronizedObject.cpp \
   Test.cpp \
-  TestAssert.cpp \
   TestCase.cpp \
   TestCaseDecorator.cpp \
   TestComposite.cpp \
