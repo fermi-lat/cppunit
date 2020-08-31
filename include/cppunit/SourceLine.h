@@ -3,6 +3,9 @@
 
 #include <cppunit/Portability.h>
 #include <string>
+#if HAVE_CXX2A
+# include <experimental/source_location>
+#endif // HAVE_CXX2A
 
 /*! \brief Constructs a SourceLine object initialized with the location where the macro is expanded.
  * \ingroup CreatingNewAssertions
@@ -48,6 +51,11 @@ public:
   int lineNumber() const;
 
   std::string fileName() const;
+
+#if HAVE_CXX2A
+  static SourceLine current(const std::experimental::source_location &location
+                              = std::experimental::source_location::current());
+#endif // HAVE_CXX2A
 
   bool operator ==( const SourceLine &other ) const;
   bool operator !=( const SourceLine &other ) const;
