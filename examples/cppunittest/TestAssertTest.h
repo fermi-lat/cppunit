@@ -23,6 +23,10 @@ class TestAssertTest : public CPPUNIT_NS::TestFixture
   CPPUNIT_TEST( testAssertDoubleEqualsPrecision );
   CPPUNIT_TEST( testAssertDoubleNonFinite );
   CPPUNIT_TEST( testFail );
+  CPPUNIT_TEST( testAssertExceptionDetail );
+#if HAVE_CXX2A
+  CPPUNIT_TEST( testCpp20Asserts );
+#endif // HAVE_CXX2A
   CPPUNIT_TEST_SUITE_END();
 
 public:
@@ -59,6 +63,12 @@ public:
   void testAssertLongNotEquals();
 
   void testFail();
+
+  void testAssertExceptionDetail();
+
+#if HAVE_CXX2A
+  void testCpp20Asserts();
+#endif // HAVE_CXX2A
 
 private:
   TestAssertTest( const TestAssertTest &copy );
