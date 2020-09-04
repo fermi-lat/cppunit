@@ -64,6 +64,16 @@ SourceLine::fileName() const
 }
 
 
+#if HAVE_CXX2A
+/*static*/ SourceLine
+SourceLine::current( const std::experimental::source_location &location )
+{
+  return SourceLine( location.file_name(),
+                     location.line() );
+}
+#endif // HAVE_CXX2A
+
+
 bool 
 SourceLine::operator ==( const SourceLine &other ) const
 {
