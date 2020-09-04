@@ -3,6 +3,9 @@
 
 #include <cppunit/Portability.h>
 #include <string>
+#if HAVE_CXX2A
+# include <experimental/source_location>
+#endif // HAVE_CXX2A
 
 /*! \brief Constructs a SourceLine object initialized with the location where the macro is expanded.
  * \ingroup CreatingNewAssertions
@@ -10,7 +13,11 @@
  * Used to write your own assertion macros.
  * \see Asserter for example of usage.
  */
-#define CPPUNIT_SOURCELINE() CPPUNIT_NS::SourceLine( __FILE__, __LINE__ )
+#if !HAVE_CXX2A
+# define CPPUNIT_SOURCELINE() CPPUNIT_NS::SourceLine( __FILE__, __LINE__ )
+#else
+# define CPPUNIT_SOURCELINE() CPPUNIT_NS::SourceLine::current()
+#endif // !HAVE_CXX2A
 
 
 CPPUNIT_NS_BEGIN
@@ -48,6 +55,11 @@ public:
   int lineNumber() const;
 
   std::string fileName() const;
+
+#if HAVE_CXX2A
+  static SourceLine current(const std::experimental::source_location &location
+                              = std::experimental::source_location::current());
+#endif // HAVE_CXX2A
 
   bool operator ==( const SourceLine &other ) const;
   bool operator !=( const SourceLine &other ) const;

@@ -4,6 +4,9 @@
 #include <cppunit/Portability.h>
 #include <cppunit/Exception.h>
 #include <cppunit/Asserter.h>
+#include <cppunit/Concepts.h>
+#include <cppunit/extensions/TypeInfoHelper.h>
+#include <cppunit/portability/FloatingPoint.h>
 #include <cppunit/portability/Stream.h>
 #include <cppunit/tools/StringHelper.h>
 #include <stdio.h>
@@ -17,6 +20,13 @@
 
 
 CPPUNIT_NS_BEGIN
+
+
+/*! \brief Compares two floating point numbers
+ */
+bool doublesEqual( double expected,
+                   double actual,
+                   double epsilon );
 
 /*! \brief Traits used by CPPUNIT_ASSERT* macros.
  *
@@ -153,52 +163,124 @@ inline std::string message_to_string( const char * s )
     return s;
 }
 
+#if !HAVE_CXX2A
+// The following is needed for transition from templates with one type
+// argument to templates with two type arguments. I.e.
+//
+// Before:
+//   template <T>
+//   assert(T expected, T actual)
+//
+// After:
+//   template <ExpectedT, ActualT>
+//   assert(ExpectedT expected, ActualT actual)
+//
+// So asserts now can explicitly take expected and actual of different types,
+// while before compiler would implicitly promote/convert types. For example,
+// in a call to CPPUNIT_ASSERT_DOUBLES_EQUAL( float, float ), floats are going
+// to be promoted to doubles.
+//
+// Since this relies on compiler doing types, perhaps the only way to *really*
+// make sure old behavior is preserved is to keep relying on compiler.
+//
+// This define makes it so both before and after can share implementation
+// (refer to ExpectedT and ActualT as they were there in both variants),
+// but in "before" variant ActualT == ExpectedT.
+# define ActualT ExpectedT
+#endif // !HAVE_CXX2A
+
 /*! \brief (Implementation) Asserts that two objects of the same type are equals.
  * Use CPPUNIT_ASSERT_EQUAL instead of this function.
  * \sa assertion_traits, Asserter::failNotEqual().
  */
-template <class T>
-void assertEquals( const T& expected,
-                   const T& actual,
-                   SourceLine sourceLine,
-                   const std::string &message )
+#if !HAVE_CXX2A
+template <typename ExpectedT>
+#else
+template <typename ExpectedT, typename ActualT>
+  requires ( std::equality_comparable_with<ExpectedT, ActualT>
+  && asserts::deny_fp_args<ExpectedT, ActualT> )
+#endif // !HAVE_CXX2A
+void assertEquals( const ExpectedT& expected,
+                   const ActualT& actual,
+                   const std::string& message,
+                   const SourceLine& sourceLine )
 {
-  if ( !assertion_traits<T>::equal(expected,actual) ) // lazy toString conversion...
+#if !HAVE_CXX2A
+  if ( !assertion_traits<ExpectedT>::equal( expected, actual ) ) // lazy toString conversion...
+#else
+  // Actually this is the same thing that assertion_trats::equal() is doing
+  // with the exception that assertion_trats::equal() is doing == on
+  // arguments of the same type, but template with two type arguments
+  // can call operator== on arguments of different types
+  if ( !(expected == actual ) )
+#endif // !HAVE_CXX2A
   {
-    Asserter::failNotEqual( assertion_traits<T>::toString(expected),
-                            assertion_traits<T>::toString(actual),
+    Asserter::failNotEqual( assertion_traits<ExpectedT>::toString( expected ),
+                            assertion_traits<ActualT>::toString( actual ),
                             sourceLine,
                             message );
   }
 }
-
 
 /*! \brief (Implementation) Asserts that two double are equals given a tolerance.
  * Use CPPUNIT_ASSERT_DOUBLES_EQUAL instead of this function.
  * \sa Asserter::failNotEqual().
  * \sa CPPUNIT_ASSERT_DOUBLES_EQUAL for detailed semantic of the assertion.
  */
-void CPPUNIT_API assertDoubleEquals( double expected,
-                                     double actual,
-                                     double delta,
-                                     SourceLine sourceLine, 
-                                     const std::string &message );
+#if !HAVE_CXX2A
+template <typename ExpectedT,
+  typename std::enable_if<(
+    // It was assertDoubleEquals(double, double, double) before. For backward
+    // compatibility, restrict template type arguments to floating point numbers
+    std::is_convertible<ExpectedT, double>::value
+  ), int>::type = 0>
+#else
+template <typename ExpectedT, typename ActualT>
+  requires ( asserts::args_convertible_to<ExpectedT, ActualT, double> )
+#endif // !HAVE_CXX2A
+void assertDoubleEquals( const ExpectedT& expected,
+                         const ActualT& actual,
+                         double epsilon,
+                         const std::string& message,
+                         const SourceLine& sourceLine )
+{
+  const bool equal = doublesEqual( expected, actual, epsilon );
 
+  AdditionalMessage msg( "Delta   : " +
+                         assertion_traits<double>::toString( epsilon ) );
+  msg.addDetail( AdditionalMessage(message) );
+
+  Asserter::failNotEqualIf( !equal,
+                            assertion_traits<double>::toString( expected ),
+                            assertion_traits<double>::toString( actual ),
+                            sourceLine,
+                            msg,
+                            "double equality assertion failed" );
+}
 
 /*! \brief (Implementation) Asserts that an object is less than another one of the same type
  * Use CPPUNIT_ASSERT_LESS, CPPUNIT_ASSERT_GREATER instead of this function.
  * \sa assertion_traits, Asserter::failNotLess().
  */
-template <class T>
-void assertLess( const T& expected,
-                 const T& actual,
-                 SourceLine sourceLine,
-                 const std::string& message )
+#if !HAVE_CXX2A
+template <typename ExpectedT>
+#else
+template <typename ExpectedT, typename ActualT>
+    requires ( asserts::less_testable_with<ActualT, ExpectedT> )
+#endif // !HAVE_CXX2A
+void assertLess( const ExpectedT& expected,
+                 const ActualT& actual,
+                 const std::string& message,
+                 const SourceLine& sourceLine )
 {
-    if ( !assertion_traits<T>::less(actual,expected) )
+#if !HAVE_CXX2A
+    if ( !assertion_traits<ExpectedT>::less( actual, expected ) )
+#else
+    if ( !( actual < expected ) )
+#endif // !HAVE_CXX2A
     {
-        Asserter::failNotLess( assertion_traits<T>::toString(expected),
-                               assertion_traits<T>::toString(actual),
+        Asserter::failNotLess( assertion_traits<ExpectedT>::toString( expected ),
+                               assertion_traits<ActualT>::toString( actual ),
                                sourceLine,
                                message );
     }
@@ -209,16 +291,25 @@ void assertLess( const T& expected,
  * Use CPPUNIT_ASSERT_LESS, CPPUNIT_ASSERT_GREATER instead of this function.
  * \sa assertion_traits, Asserter::failNotLess().
  */
-template <class T>
-void assertGreater( const T& expected,
-                 const T& actual,
-                 SourceLine sourceLine,
-                 const std::string& message )
+#if !HAVE_CXX2A
+template <typename ExpectedT>
+#else
+template <typename ExpectedT, typename ActualT>
+    requires ( asserts::less_testable_with<ExpectedT, ActualT> )
+#endif // !HAVE_CXX2A
+void assertGreater( const ExpectedT& expected,
+                    const ActualT& actual,
+                    const std::string& message,
+                    const SourceLine& sourceLine )
 {
-    if ( !assertion_traits<T>::less(expected,actual) )
+#if !HAVE_CXX2A
+    if ( !assertion_traits<ExpectedT>::less( expected, actual ) )
+#else
+    if ( !( expected < actual ) )
+#endif // !HAVE_CXX2A
     {
-        Asserter::failNotGreater( assertion_traits<T>::toString(expected),
-                               assertion_traits<T>::toString(actual),
+        Asserter::failNotGreater( assertion_traits<ExpectedT>::toString( expected ),
+                                  assertion_traits<ActualT>::toString( actual ),
                                sourceLine,
                                message );
     }
@@ -228,39 +319,179 @@ void assertGreater( const T& expected,
  * Use CPPUNIT_ASSERT_LESSEQUAL, CPPUNIT_ASSERT_GREATEREQUAL instead of this function.
  * \sa assertion_traits, Asserter::failNotLessEqual().
  */
-template <class T>
-void assertLessEqual( const T& expected,
-                      const T& actual,
-                      SourceLine sourceLine,
-                      const std::string& message )
+#if !HAVE_CXX2A
+template <typename ExpectedT>
+#else
+template <typename ExpectedT, typename ActualT>
+    requires ( asserts::less_testable_with<ActualT, ExpectedT>
+    && std::equality_comparable_with<ExpectedT, ActualT>
+    // XXX: C++11 version accepts floats here, but this isn't entirely correct.
+    // At very least for floating point numbers it should be overload
+    // that accepts epsilon like assertEqual() and CPPUNIT_ASSERT_DOUBLES_EQUAL() do.
+    // However that would require additional macros that are't there:
+    //   CPPUNIT_ASSERT_DOUBLES_LESS_EQUAL( float, float, epsilon )
+    //   CPPUNIT_ASSERT_DOUBLES_GREATER_EQUAL( float, float, epsilon )
+    && asserts::deny_fp_args<ExpectedT, ActualT> )
+#endif // !HAVE_CXX2A
+void assertLessEqual( const ExpectedT& expected,
+                      const ActualT& actual,
+                      const std::string& message,
+                      const SourceLine& sourceLine )
 {
-    if ( !assertion_traits<T>::lessEqual(actual,expected) )
+#if !HAVE_CXX2A
+    if ( !assertion_traits<ExpectedT>::lessEqual( actual, expected ) )
+#else
+    if ( !( actual <= expected ) )
+#endif // !HAVE_CXX2A
     {
-        Asserter::failNotLessEqual( assertion_traits<T>::toString(expected),
-                               assertion_traits<T>::toString(actual),
+        Asserter::failNotLessEqual( assertion_traits<ExpectedT>::toString( expected ),
+                                    assertion_traits<ActualT>::toString( actual ),
                                sourceLine,
                                message );
     }
 }
 
+#if HAVE_CXX2A
+/*! \brief (Implementation) Less or equal implementation for floating point numbers
+ * \sa Asserter::failNotLessEqual().
+ */
+template <typename ExpectedT, typename ActualT>
+    requires ( asserts::less_testable_with<ActualT, ExpectedT>
+    && asserts::args_convertible_to<ExpectedT, ActualT, double> )
+void assertDoubleLessEqual( const ExpectedT& expected,
+                            const ActualT& actual,
+                            double epsilon,
+                            const std::string& message,
+                            const SourceLine& sourceLine )
+{
+    AdditionalMessage msg( "Delta   : " +
+                           assertion_traits<double>::toString( epsilon ) );
+    msg.addDetail( AdditionalMessage(message) );
+
+    if ( !( actual < expected )
+    && !( doublesEqual( expected, actual, epsilon ) ) )
+    {
+        Asserter::failNotLessEqual( assertion_traits<double>::toString( expected ),
+                                    assertion_traits<double>::toString( actual ),
+                                    sourceLine,
+                                    msg );
+    }
+}
+
+// XXX: Since regular assertLessEqual() forbids operations on floating point numbers
+// in C++20, one way to work this around without introducing new macros is to provide
+// overload for doubles that perform correct comparison with some default epsilon.
+inline double CPPUNIT_DEFAULT_EPSILON = std::numeric_limits<float>::min();
+
+// XXX: So CPPUNIT_ASSERT_LESSEQUAL( double, double ) works and works correctly
+// (in regard to epsilon), but there is no way to pass epsilon. If such way would exist,
+// for instance, if CPPUNIT_ASSERT_DOUBLES_LESSEQUAL( expected, actual, epsilon ) existed,
+// it should have been routed to assertDoubleLessEqual() directly and this overload
+// is no longer needed.
+/*! \brief (Implementation) Less or equal implementation for floating point numbers
+ * \sa assertDoubleLessEqual, Asserter::failNotLessEqual().
+ */
+template <typename ExpectedT, typename ActualT>
+    requires ( asserts::less_testable_with<ActualT, ExpectedT>
+    && asserts::fp_overload<ExpectedT, ActualT> )
+void assertLessEqual( const ExpectedT& expected,
+                      const ActualT& actual,
+                      const std::string& message,
+                      const SourceLine& sourceLine )
+{
+    assertDoubleLessEqual( expected,
+                           actual,
+                           CPPUNIT_DEFAULT_EPSILON,
+                           message,
+                           sourceLine );
+}
+#endif // HAVE_CXX2A
+
 /*! \brief (Implementation) Asserts that two objects of the same type are equals.
  * Use CPPUNIT_ASSERT_LESSEQUAL, CPPUNIT_ASSERT_GREATEREQUAL instead of this function.
  * \sa assertion_traits, Asserter::failNotLessEqual().
  */
-template <class T>
-void assertGreaterEqual( const T& expected,
-                      const T& actual,
-                      SourceLine sourceLine,
-                      const std::string& message )
+#if !HAVE_CXX2A
+template <typename ExpectedT>
+#else
+template <typename ExpectedT, typename ActualT>
+    requires ( asserts::less_testable_with<ExpectedT, ActualT>
+    && std::equality_comparable_with<ExpectedT, ActualT>
+    // XXX: same constraints for floats as in assertLessEqual()
+    && asserts::deny_fp_args<ExpectedT, ActualT> )
+#endif // !HAVE_CXX2A
+void assertGreaterEqual( const ExpectedT& expected,
+                         const ActualT& actual,
+                         const std::string& message,
+                         const SourceLine& sourceLine )
 {
-    if ( !assertion_traits<T>::lessEqual(expected,actual) )
+#if !HAVE_CXX2A
+    if ( !assertion_traits<ExpectedT>::lessEqual( expected, actual ) )
+#else
+    if ( !( expected <= actual ) )
+#endif // !HAVE_CXX2A
     {
-        Asserter::failNotGreaterEqual( assertion_traits<T>::toString(expected),
-                               assertion_traits<T>::toString(actual),
+        Asserter::failNotGreaterEqual( assertion_traits<ExpectedT>::toString( expected ),
+                                       assertion_traits<ActualT>::toString( actual ),
                                sourceLine,
                                message );
     }
 }
+
+#if HAVE_CXX2A
+/*! \brief (Implementation) Greater or equal implementation for floating point numbers
+ * \sa Asserter::failNotGreaterEqual().
+ */
+template <typename ExpectedT, typename ActualT>
+    requires ( asserts::less_testable_with<ExpectedT, ActualT>
+    && asserts::args_convertible_to<ExpectedT, ActualT, double> )
+void assertDoubleGreaterEqual( const ExpectedT& expected,
+                               const ActualT& actual,
+                               double epsilon,
+                               const std::string& message,
+                               const SourceLine& sourceLine )
+{
+    AdditionalMessage msg( "Delta   : " +
+                           assertion_traits<double>::toString( epsilon ) );
+    msg.addDetail( AdditionalMessage(message) );
+
+    if ( !( expected < actual )
+    && !( doublesEqual( expected, actual, epsilon ) ) )
+    {
+        Asserter::failNotGreaterEqual( assertion_traits<double>::toString( expected ),
+                                       assertion_traits<double>::toString( actual ),
+                                       sourceLine,
+                                       msg );
+    }
+}
+
+// XXX: Same rationale as for assertLessEqual() overload for floating point numbers
+/*! \brief (Implementation) Greater or equal implementation for floating point numbers
+ * \sa assertDoubleGreaterEqual, Asserter::failNotGreaterEqual().
+ */
+template <typename ExpectedT, typename ActualT>
+    requires ( asserts::less_testable_with<ActualT, ExpectedT>
+    // XXX: same constraints for floats as in assertLessEqual()
+    && asserts::fp_overload<ExpectedT, ActualT> )
+void assertGreaterEqual( const ExpectedT& expected,
+                         const ActualT& actual,
+                         const std::string& message,
+                         const SourceLine& sourceLine )
+{
+    assertDoubleGreaterEqual( expected,
+                              actual,
+                              CPPUNIT_DEFAULT_EPSILON,
+                              message,
+                              sourceLine );
+}
+#endif // HAVE_CXX2A
+
+// Discard stuff used for transition from templates with one type argument
+// two templates with two type arguments
+#if !HAVE_CXX2A
+# undef ActualT
+#endif // !HAVE_CXX2A
+
 /* A set of macros which allow us to get the line number
  * and file name at the point of an error.
  * Just goes to show that preprocessors do have some
@@ -306,6 +537,12 @@ void assertGreaterEqual( const T& expected,
                                                      CPPUNIT_NS::message_to_string(message) ),         \
                                 CPPUNIT_SOURCELINE() ) )
 
+// FIXME: Well, i'd add message param to the right place,
+// but this looks like it was broken for some time.
+// ~~assertEquals() expected 4 arguments, not 3.~~
+// assertEquals() expects arguments of different type, i guess.
+// Remove maybe? It is unlikely that someone is using something
+// that shouldn't work question mark?
 #ifdef CPPUNIT_ENABLE_SOURCELINE_DEPRECATED
 /// Generalized macro for primitive value comparisons
 #define CPPUNIT_ASSERT_EQUAL(expected,actual)                     \
@@ -332,8 +569,8 @@ void assertGreaterEqual( const T& expected,
 #define CPPUNIT_ASSERT_EQUAL(expected,actual)          \
   ( CPPUNIT_NS::assertEquals( (expected),              \
                               (actual),                \
-                              CPPUNIT_SOURCELINE(),    \
-                              "" ) )
+                              "",                      \
+                              CPPUNIT_SOURCELINE() ) )
 
 /** Asserts that two values are equals, provides additional message on failure.
  * \ingroup Assertions
@@ -356,8 +593,8 @@ void assertGreaterEqual( const T& expected,
 #define CPPUNIT_ASSERT_EQUAL_MESSAGE(message,expected,actual)      \
   ( CPPUNIT_NS::assertEquals( (expected),              \
                               (actual),                \
-                              CPPUNIT_SOURCELINE(),    \
-                              CPPUNIT_NS::message_to_string(message) ) )
+                              CPPUNIT_NS::message_to_string(message), \
+                              CPPUNIT_SOURCELINE() ) )
 #endif
 
 /** Asserts that actual is less than expected, provides additional message on failure.
@@ -383,8 +620,8 @@ void assertGreaterEqual( const T& expected,
 #define CPPUNIT_ASSERT_LESS(expected, actual)          \
     ( CPPUNIT_NS::assertLess( (expected),              \
                               (actual),                \
-                              CPPUNIT_SOURCELINE(),    \
-                              "" ) )
+                              "",                      \
+                              CPPUNIT_SOURCELINE() ) )
 
 /** Asserts that actual is greater than expected, provides additional message on failure.
  * \ingroup Assertions
@@ -409,8 +646,8 @@ void assertGreaterEqual( const T& expected,
 #define CPPUNIT_ASSERT_GREATER(expected, actual)       \
     ( CPPUNIT_NS::assertGreater( (expected),           \
                                  (actual),             \
-                                 CPPUNIT_SOURCELINE(), \
-                                 "" ) )
+                                 "",                   \
+                                 CPPUNIT_SOURCELINE() ) )
 
 /** Asserts that actual is less or equal than expected, provides additional message on failure.
  * \ingroup Assertions
@@ -435,8 +672,8 @@ void assertGreaterEqual( const T& expected,
 #define CPPUNIT_ASSERT_LESSEQUAL(expected, actual)               \
     ( CPPUNIT_NS::assertLessEqual( (expected),              \
                                    (actual),                \
-                                   CPPUNIT_SOURCELINE(),    \
-                                   "" ) )
+                                   "",                      \
+                                   CPPUNIT_SOURCELINE() ) )
 
 /** Asserts that actual is greater than expected, provides additional message on failure.
  * \ingroup Assertions
@@ -461,8 +698,8 @@ void assertGreaterEqual( const T& expected,
 #define CPPUNIT_ASSERT_GREATEREQUAL(expected, actual)            \
     ( CPPUNIT_NS::assertGreaterEqual( (expected),                \
                                       (actual),              \
-                                      CPPUNIT_SOURCELINE(),    \
-                                      "" ) )
+                                      "",                        \
+                                      CPPUNIT_SOURCELINE() ) )
 /*! \brief Macro for primitive double value comparisons. 
  * \ingroup Assertions
  *
@@ -477,8 +714,8 @@ void assertGreaterEqual( const T& expected,
   ( CPPUNIT_NS::assertDoubleEquals( (expected),            \
                                     (actual),              \
                                     (delta),               \
-                                    CPPUNIT_SOURCELINE(),  \
-                                    "" ) )
+                                    "",                    \
+                                    CPPUNIT_SOURCELINE() ) )
 
 
 /*! \brief Macro for primitive double value comparisons, setting a 
@@ -490,8 +727,8 @@ void assertGreaterEqual( const T& expected,
   ( CPPUNIT_NS::assertDoubleEquals( (expected),            \
                                     (actual),              \
                                     (delta),               \
-                                    CPPUNIT_SOURCELINE(),  \
-                                    CPPUNIT_NS::message_to_string(message) ) )
+                                    CPPUNIT_NS::message_to_string(message),  \
+                                    CPPUNIT_SOURCELINE() ) )
 
 
 /** Asserts that the given expression throws an exception of the specified type. 
@@ -503,7 +740,7 @@ void assertGreaterEqual( const T& expected,
  * \endcode
  */
 # define CPPUNIT_ASSERT_THROW( expression, ExceptionType )              \
-   CPPUNIT_ASSERT_THROW_MESSAGE( CPPUNIT_NS::AdditionalMessage(),       \
+   CPPUNIT_ASSERT_THROW_MESSAGE( "",                                    \
                                  expression,                            \
                                  ExceptionType )
 
@@ -520,6 +757,55 @@ void assertGreaterEqual( const T& expected,
 // implementation detail
 #define CPPUNIT_GET_PARAMETER_STRING( parameter ) #parameter
 
+// XXX: Macro was expecting AdditionalMessage instead of std::string
+// this might backfire
+/** \brief (Implementation) Asserts that executable is throwing exception
+ * of expected type. Use CPPUNIT_ASSERT_THROW instead of this function.
+ */
+template <typename ExceptionT,
+          typename Executable>
+#if HAVE_CXX2A
+   requires asserts::executable<Executable>
+#endif // HAVE_CXX2A
+void assertThrows( Executable executable,
+                   const std::string& message,
+                   const SourceLine& sourceLine )
+{
+   bool cpputCorrectExceptionThrown_ = false;
+   CPPUNIT_NS::Message cpputMsg_( "expected exception thrown" );
+   cpputMsg_.addDetail( AdditionalMessage(message) );
+   cpputMsg_.addDetail( "Expected: " +
+                        CPPUNIT_NS::TypeInfoHelper::getClassName( typeid(ExceptionT) ) );
+
+   try
+   {
+      executable();
+   }
+   catch ( const ExceptionT & )
+   {
+      cpputCorrectExceptionThrown_ = true;
+   }
+   catch ( const std::exception &e )
+   {
+      cpputMsg_.addDetail( "Actual  : " +
+                           CPPUNIT_NS::TypeInfoHelper::getClassName( typeid(e) ) );
+      cpputMsg_.addDetail( std::string("What()  : ") + e.what() );
+   }
+   catch ( ... )
+   {
+      cpputMsg_.addDetail( "Actual  : unknown." );
+   }
+
+   if ( !cpputCorrectExceptionThrown_ )
+   {
+      CPPUNIT_NS::Asserter::fail( cpputMsg_,
+                                  sourceLine );
+   }
+}
+
+
+// XXX: Note that this exploits the fact that [&] captures this pointer,
+// so lambda that wraps up `expression` can be called from fixture's method.
 /** Asserts that the given expression throws an exception of the specified type, 
  * setting a user supplied message in case of failure. 
  * \ingroup Assertions
@@ -530,32 +816,9 @@ void assertGreaterEqual( const T& expected,
  * \endcode
  */
 # define CPPUNIT_ASSERT_THROW_MESSAGE( message, expression, ExceptionType )   \
-   do {                                                                       \
-      bool cpputCorrectExceptionThrown_ = false;                              \
-      CPPUNIT_NS::Message cpputMsg_( "expected exception not thrown" );       \
-      cpputMsg_.addDetail( CPPUNIT_NS::message_to_string(message) );                                         \
-      cpputMsg_.addDetail( "Expected: "                                       \
-                           CPPUNIT_GET_PARAMETER_STRING( ExceptionType ) );   \
-                                                                              \
-      try {                                                                   \
-         expression;                                                          \
-      } catch ( const ExceptionType & ) {                                     \
-         cpputCorrectExceptionThrown_ = true;                                 \
-      } catch ( const std::exception &e) {                                    \
-         cpputMsg_.addDetail( "Actual  : " +                                  \
-                              CPPUNIT_EXTRACT_EXCEPTION_TYPE_( e,             \
-                                          "std::exception or derived") );     \
-         cpputMsg_.addDetail( std::string("What()  : ") + e.what() );         \
-      } catch ( ... ) {                                                       \
-         cpputMsg_.addDetail( "Actual  : unknown.");                          \
-      }                                                                       \
-                                                                              \
-      if ( cpputCorrectExceptionThrown_ )                                     \
-	    { break; }                                                        \
-                                                                              \
-      CPPUNIT_NS::Asserter::fail( cpputMsg_,                                  \
-                                  CPPUNIT_SOURCELINE() );                     \
-   } while ( false )
+   CPPUNIT_NS::assertThrows<ExceptionType>( [&] { expression; },              \
+                                            message,                          \
+                                            CPPUNIT_SOURCELINE() )
 
 
 /** Asserts that the given expression does not throw any exceptions.
@@ -568,8 +831,45 @@ void assertGreaterEqual( const T& expected,
  * \endcode
  */
 # define CPPUNIT_ASSERT_NO_THROW( expression )                             \
-   CPPUNIT_ASSERT_NO_THROW_MESSAGE( CPPUNIT_NS::AdditionalMessage(),       \
+   CPPUNIT_ASSERT_NO_THROW_MESSAGE( "",                                    \
                                     expression )
+
+
+// XXX: Macro was expecting AdditionalMessage instead of std::string
+// this might backfire
+/** \brief (Implementation) Asserts that executable does not throw exception.
+ * Use CPPUNIT_ASSERT_NO_THROW instead of this function.
+ */
+template <typename Executable>
+#if HAVE_CXX2A
+   requires asserts::executable<Executable>
+#endif // HAVE_CXX2A
+void assertDoesNotThrow( Executable executable,
+                         const std::string& message,
+                         const SourceLine& sourceLine )
+{
+   CPPUNIT_NS::Message cpputMsg_( "unexpected exception caught" );
+   cpputMsg_.addDetail( AdditionalMessage(message) );
+
+   try
+   {
+      executable();
+   }
+   catch ( const std::exception &e )
+   {
+      cpputMsg_.addDetail( "Caught: " +
+                           CPPUNIT_NS::TypeInfoHelper::getClassName( typeid(e) ) );
+      cpputMsg_.addDetail( std::string("What(): ") + e.what() );
+      CPPUNIT_NS::Asserter::fail( cpputMsg_,
+                                  sourceLine );
+   }
+   catch ( ... )
+   {
+      cpputMsg_.addDetail( "Caught: unknown." );
+      CPPUNIT_NS::Asserter::fail( cpputMsg_,
+                                  sourceLine );
+   }
+}
 
 
 /** Asserts that the given expression does not throw any exceptions, 
@@ -583,25 +883,9 @@ void assertGreaterEqual( const T& expected,
  * \endcode
  */
 # define CPPUNIT_ASSERT_NO_THROW_MESSAGE( message, expression )               \
-   do {                                                                       \
-      CPPUNIT_NS::Message cpputMsg_( "unexpected exception caught" );         \
-      cpputMsg_.addDetail( CPPUNIT_NS::message_to_string(message) );                                         \
-                                                                              \
-      try {                                                                   \
-         expression;                                                          \
-      } catch ( const std::exception &e ) {                                   \
-         cpputMsg_.addDetail( "Caught: " +                                    \
-                              CPPUNIT_EXTRACT_EXCEPTION_TYPE_( e,             \
-                                          "std::exception or derived" ) );    \
-         cpputMsg_.addDetail( std::string("What(): ") + e.what() );           \
-         CPPUNIT_NS::Asserter::fail( cpputMsg_,                               \
-                                     CPPUNIT_SOURCELINE() );                  \
-      } catch ( ... ) {                                                       \
-         cpputMsg_.addDetail( "Caught: unknown." );                           \
-         CPPUNIT_NS::Asserter::fail( cpputMsg_,                               \
-                                     CPPUNIT_SOURCELINE() );                  \
-      }                                                                       \
-   } while ( false )
+   CPPUNIT_NS::assertDoesNotThrow( [&] { expression; },                       \
+                                   message,                                   \
+                                   CPPUNIT_SOURCELINE() )
 
 
 /** Asserts that an assertion fail.
