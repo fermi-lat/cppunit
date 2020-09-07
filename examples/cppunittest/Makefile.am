@@ -19,6 +19,8 @@ cppunittestmain_SOURCES = \
   ExceptionTestCaseDecoratorTest.cpp \
 	ExtensionSuite.h \
 	FailureException.h \
+	FixturelessTest.h \
+	FixturelessTest.cpp \
 	HelperMacrosTest.cpp \
 	HelperMacrosTest.h \
 	HelperSuite.h \
@@ -58,10 +60,13 @@ cppunittestmain_SOURCES = \
 	TestResultTest.h \
 	TestSetUpTest.cpp \
 	TestSetUpTest.h \
+	TestSourceLineTest.cpp \
+	TestSourceLineTest.h \
 	TestSuiteTest.cpp \
 	TestSuiteTest.h \
 	TestTest.cpp \
 	TestTest.h \
+	TestTypeInfoHelperTest.cpp \
   ToolsSuite.h \
 	TrackedTestCase.cpp \
 	TrackedTestCase.h \
