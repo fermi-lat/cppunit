@@ -44,12 +44,6 @@
 # define CPPUNIT_ENABLE_CU_TEST_MACROS        0
 #endif
 
-/* Define to 1 if the preprocessor expands (#foo) to "foo" (quotes incl.) 
-   I don't think there is any C preprocess that does NOT support this! */
-#if !defined(CPPUNIT_HAVE_CPP_SOURCE_ANNOTATION)
-# define CPPUNIT_HAVE_CPP_SOURCE_ANNOTATION   1
-#endif
-
 /* Assumes that STL and CppUnit are in global space if the compiler does not
    support namespace. */
 #if !defined(CPPUNIT_HAVE_NAMESPACES)

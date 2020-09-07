@@ -266,7 +266,7 @@ void assertGreaterEqual( const T& expected,
  * Just goes to show that preprocessors do have some
  * redeeming qualities.
  */
-#if CPPUNIT_HAVE_CPP_SOURCE_ANNOTATION
+
 /** Assertions that a condition is \c true.
  * \ingroup Assertions
  */
@@ -275,12 +275,6 @@ void assertGreaterEqual( const T& expected,
                                  CPPUNIT_NS::Message( "assertion failed",         \
                                                       "Expression: " #condition), \
                                  CPPUNIT_SOURCELINE() ) )
-#else
-#define CPPUNIT_ASSERT(condition)                                            \
-  ( CPPUNIT_NS::Asserter::failIf( !(condition),                              \
-                                  CPPUNIT_NS::Message( "assertion failed" ), \
-                                  CPPUNIT_SOURCELINE() ) )
-#endif
 
 /** Assertion with a user specified message.
  * \ingroup Assertions
