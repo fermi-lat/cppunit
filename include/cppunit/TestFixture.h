@@ -93,6 +93,25 @@ public:
 };
 
 
+#if HAVE_CXX2A
+
+namespace core {
+
+template <typename T>
+concept test_fixture = requires (T t)
+{
+  t.setUp();
+  t.tearDown();
+};
+
+} // namespace core
+
+// Check that TestFixture satisfies core::test_fixture concept
+static_assert( core::test_fixture<TestFixture> );
+
+#endif // HAVE_CXX2A
+
+
 CPPUNIT_NS_END
 
 

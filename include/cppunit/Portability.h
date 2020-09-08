@@ -166,4 +166,8 @@
 # define CPPUNIT_WRAP_COLUMN 79
 #endif
 
+#if __cplusplus >= 201709L
+# define HAVE_CXX2A 1
+#endif // __cplusplus >= 201709L
+
 #endif // CPPUNIT_PORTABILITY_H
