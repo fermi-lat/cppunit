@@ -93,6 +93,38 @@ public:
 };
 
 
+#if CPPUNIT_HAS_CONCEPTS
+
+namespace core {
+
+template <typename T>
+concept test_fixture_setup = requires (T t)
+{
+  t.setUp();
+};
+
+template <typename T>
+concept test_fixture_teardown = requires (T t)
+{
+  t.tearDown();
+};
+
+template <typename T>
+concept test_fixture = test_fixture_setup<T>
+  && test_fixture_teardown<T>;
+
+template <typename T>
+concept test_fixture_less = !test_fixture_setup<T>
+  && !test_fixture_teardown<T>;
+
+} // namespace core
+
+// Check that TestFixture satisfies core::test_fixture concept
+static_assert( core::test_fixture<TestFixture> );
+
+#endif // CPPUNIT_HAS_CONCEPTS
+
+
 CPPUNIT_NS_END
 
 

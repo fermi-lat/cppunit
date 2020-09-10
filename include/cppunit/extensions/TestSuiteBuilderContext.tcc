@@ -1,3 +1,6 @@
+#ifndef CPPUNIT_HELPER_TESTSUITEBUILDERCONTEXT_TCC
+#define CPPUNIT_HELPER_TESTSUITEBUILDERCONTEXT_TCC
+
 #include <cppunit/TestSuite.h>
 #include <cppunit/extensions/TestFixtureFactory.h>
 #include <cppunit/extensions/TestNamer.h>
@@ -6,10 +9,11 @@
 
 CPPUNIT_NS_BEGIN
 
-TestSuiteBuilderContextBase::TestSuiteBuilderContextBase( 
+template <typename Fixture>
+TestSuiteBuilderContextBase<Fixture>::TestSuiteBuilderContextBase( 
                                  TestSuite &suite,
                                  const TestNamer &namer,
-                                 TestFixtureFactory &factory )
+                                 TestFixtureFactory<Fixture> &factory )
   : m_suite( suite )
   , m_namer( namer )
   , m_factory( factory )
@@ -18,42 +22,42 @@ TestSuiteBuilderContextBase::TestSuiteBuilderContextBase(
 }
 
 
-TestSuiteBuilderContextBase::~TestSuiteBuilderContextBase()
-{
-}
-
-
+template <typename Fixture>
 void 
-TestSuiteBuilderContextBase::addTest( Test *test )
+TestSuiteBuilderContextBase<Fixture>::addTest( Test *test )
 {
   m_suite.addTest( test );
 }
 
 
+template <typename Fixture>
 std::string 
-TestSuiteBuilderContextBase::getFixtureName() const
+TestSuiteBuilderContextBase<Fixture>::getFixtureName() const
 {
   return m_namer.getFixtureName();
 }
 
 
+template <typename Fixture>
 std::string 
-TestSuiteBuilderContextBase::getTestNameFor( 
+TestSuiteBuilderContextBase<Fixture>::getTestNameFor( 
                                  const std::string &testMethodName ) const
 {
   return m_namer.getTestNameFor( testMethodName );
 }
 
 
-TestFixture *
-TestSuiteBuilderContextBase::makeTestFixture() const
+template <typename Fixture>
+typename TestSuiteBuilderContextBase<Fixture>::FixtureType *
+TestSuiteBuilderContextBase<Fixture>::makeTestFixture() const
 {
   return m_factory.makeFixture();
 }
 
 
+template <typename Fixture>
 void 
-TestSuiteBuilderContextBase::addProperty( const std::string &key, 
+TestSuiteBuilderContextBase<Fixture>::addProperty( const std::string &key, 
                                           const std::string &value )
 {
   Properties::iterator it = m_properties.begin();
@@ -70,8 +74,9 @@ TestSuiteBuilderContextBase::addProperty( const std::string &key,
   m_properties.push_back( property );
 }
 
+template <typename Fixture>
 const std::string 
-TestSuiteBuilderContextBase::getStringProperty( const std::string &key ) const
+TestSuiteBuilderContextBase<Fixture>::getStringProperty( const std::string &key ) const
 {
   Properties::const_iterator it = m_properties.begin();
   for ( ; it != m_properties.end(); ++it )
@@ -84,3 +89,5 @@ TestSuiteBuilderContextBase::getStringProperty( const std::string &key ) const
 
 
 CPPUNIT_NS_END
+
+#endif // CPPUNIT_HELPER_TESTSUITEBUILDERCONTEXT_TCC
