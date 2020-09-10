@@ -46,7 +46,6 @@ libcppunit_la_SOURCES = \
   TestSetUp.cpp \
   TestSuccessListener.cpp \
   TestSuite.cpp \
-  TestSuiteBuilderContext.cpp \
   TextOutputter.cpp \
   TextTestProgressListener.cpp \
   TextTestResult.cpp \
