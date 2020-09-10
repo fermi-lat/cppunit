@@ -103,6 +103,20 @@ struct ExpectedExceptionTraits<NoExceptionExpected>
  */
 
 template <class Fixture>
+#if CPPUNIT_HAS_CONCEPTS
+  // Make sure that typename fits expected TestFixture interface.
+  // This doesn't do much except for the fact that in C++11 template
+  // is going to be instantiated, compiled and in case of mismatched
+  // type compiler is going to show error somewhere in instantiated
+  // code, but in C++20 compiler will check constraints before compiling
+  // template and will show error if constraints aren't satisfied.
+  //
+  // Actually, C++11 error message is shorter and cleaner than C++20 one.
+  // It just says that class does not contain setUp()/tearDown()
+  // while C++20 message is more verbose and includes whole stack of
+  // calls with macros expansion.
+  requires ( core::test_fixture<Fixture> )
+#endif // CPPUNIT_HAS_CONCEPTS
 class TestCaller : public TestCase
 { 
   typedef void (Fixture::*TestMethod)();
