@@ -64,6 +64,16 @@ SourceLine::fileName() const
 }
 
 
+#if CPPUNIT_HAS_SOURCE_LOCATION
+/*static*/ SourceLine
+SourceLine::current( const std::source_location &location )
+{
+  return SourceLine( location.file_name(),
+                     location.line() );
+}
+#endif // CPPUNIT_HAS_SOURCE_LOCATION
+
+
 bool 
 SourceLine::operator ==( const SourceLine &other ) const
 {

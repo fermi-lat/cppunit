@@ -22,7 +22,14 @@ class TestAssertTest : public CPPUNIT_NS::TestFixture
   CPPUNIT_TEST( testAssertDoubleEquals );
   CPPUNIT_TEST( testAssertDoubleEqualsPrecision );
   CPPUNIT_TEST( testAssertDoubleNonFinite );
+  CPPUNIT_TEST( testAssertDoubleEqualsMixedTypes );
   CPPUNIT_TEST( testFail );
+  CPPUNIT_TEST( testAssertExceptionDetail );
+#if CPPUNIT_HAS_CONCEPTS
+  CPPUNIT_TEST( testConceptsAsserts );
+  CPPUNIT_TEST( testDoubleLessEqualAsserts );
+  CPPUNIT_TEST( testDoubleGreaterEqualAsserts );
+#endif // CPPUNIT_HAS_CONCEPTS
   CPPUNIT_TEST_SUITE_END();
 
 public:
@@ -54,11 +61,20 @@ public:
   void testAssertDoubleEquals();
   void testAssertDoubleEqualsPrecision();
   void testAssertDoubleNonFinite();
+  void testAssertDoubleEqualsMixedTypes();
 
   void testAssertLongEquals();
   void testAssertLongNotEquals();
 
   void testFail();
+
+  void testAssertExceptionDetail();
+
+#if CPPUNIT_HAS_CONCEPTS
+  void testConceptsAsserts();
+  void testDoubleLessEqualAsserts();
+  void testDoubleGreaterEqualAsserts();
+#endif // CPPUNIT_HAS_CONCEPTS
 
 private:
   TestAssertTest( const TestAssertTest &copy );
@@ -70,6 +86,9 @@ private:
 
   void checkMessageContains( CPPUNIT_NS::Exception *e,
                              std::string expectedMessage );
+
+  void throwsException();
+  void doesNotThrowException();
 
 private:
 };
