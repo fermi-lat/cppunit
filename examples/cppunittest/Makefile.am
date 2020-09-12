@@ -58,6 +58,8 @@ cppunittestmain_SOURCES = \
 	TestResultTest.h \
 	TestSetUpTest.cpp \
 	TestSetUpTest.h \
+	TestSourceLineTest.cpp \
+	TestSourceLineTest.h \
 	TestSuiteTest.cpp \
 	TestSuiteTest.h \
 	TestTest.cpp \
@@ -65,6 +67,7 @@ cppunittestmain_SOURCES = \
   ToolsSuite.h \
 	TrackedTestCase.cpp \
 	TrackedTestCase.h \
+	TypeInfoHelperTest.cpp \
 	UnitTestToolSuite.h \
 	XmlElementTest.h \
 	XmlElementTest.cpp \
