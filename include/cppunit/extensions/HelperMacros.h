@@ -109,13 +109,13 @@
     }                                                                       \
                                                                             \
   public:                                                                   \
-    typedef CPPUNIT_NS::TestSuiteBuilderContext<TestFixtureType>            \
+    typedef CPPUNIT_NS::TestSuiteBuilderContextBase<TestFixtureType>        \
                 TestSuiteBuilderContextType;                                \
                                                                             \
+    template <typename Context>                                             \
     static void                                                             \
-    addTestsToSuite( CPPUNIT_NS::TestSuiteBuilderContextBase &baseContext ) \
-    {                                                                       \
-      TestSuiteBuilderContextType context( baseContext )
+    addTestsToSuite( Context &context )                                     \
+    {
 
 
 /*! \brief Begin test suite (includes parent suite)
@@ -153,7 +153,7 @@
     typedef ASuperClass ParentTestFixtureType;                   \
   private:                                                       \
     CPPUNIT_TEST_SUITE( ATestFixtureType );                      \
-      ParentTestFixtureType::addTestsToSuite( baseContext )
+      ParentTestFixtureType::addTestsToSuite( context )
 
 
 /*! \brief End declaration of the test suite.
@@ -172,8 +172,8 @@ public:									       \
       const CPPUNIT_NS::TestNamer &namer = getTestNamer__();                   \
       std::unique_ptr<CPPUNIT_NS::TestSuite> guard(                            \
               new CPPUNIT_NS::TestSuite( namer.getFixtureName() ));            \
-      CPPUNIT_NS::ConcretTestFixtureFactory<TestFixtureType> factory;          \
-      CPPUNIT_NS::TestSuiteBuilderContextBase context( *guard.get(),           \
+      CPPUNIT_NS::TestFixtureFactory<TestFixtureType> factory;                 \
+      CPPUNIT_NS::TestSuiteBuilderContextBase<TestFixtureType> context( *guard.get(), \
                                                        namer,                  \
                                                        factory );              \
       TestFixtureType::addTestsToSuite( context );                             \
@@ -319,20 +319,19 @@ public:									       \
  */
 #define CPPUNIT_TEST( testMethod )                        \
     CPPUNIT_TEST_SUITE_ADD_TEST(                           \
-        ( new CPPUNIT_NS::TestCaller<TestFixtureType>(    \
+    CPPUNIT_NS::makeNewTestCaller<TestFixtureType>(       \
                   context.getTestNameFor( #testMethod),   \
                   &TestFixtureType::testMethod,           \
-                  context.makeFixture() ) ) )
+                  context.makeFixture() ) )
 
 #define CPPUNIT_TEST_PARAMETERIZED( testMethod, ... )    \
     for (auto& i : __VA_ARGS__)                                  \
     {                                                           \
-        TestFixtureType* fixture = context.makeFixture();       \
         CPPUNIT_TEST_SUITE_ADD_TEST(                            \
-        ( new CPPUNIT_NS::TestCaller<TestFixtureType>(          \
+        CPPUNIT_NS::makeNewTestCaller<TestFixtureType>(         \
                     context.getTestNameFor(#testMethod, i),     \
-                    std::bind(&TestFixtureType::testMethod, fixture, i),          \
-                    fixture)));                                  \
+                    [&i] ( TestFixtureType *self ) { self->testMethod(i); }, \
+                    context.makeFixture() ) );                  \
     }
 
 /*! \brief Add a test which fail if the specified exception is not caught.
