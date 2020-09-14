@@ -64,6 +64,15 @@ SourceLine::fileName() const
 }
 
 
+/*static*/ SourceLine
+SourceLine::current( const std::string &fileName,
+                     int lineNumber )
+{
+  return SourceLine( fileName,
+                     lineNumber );
+}
+
+
 bool 
 SourceLine::operator ==( const SourceLine &other ) const
 {
