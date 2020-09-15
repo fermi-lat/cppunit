@@ -17,12 +17,24 @@ class TestAssertTest : public CPPUNIT_NS::TestFixture
   CPPUNIT_TEST( testAssertGreater );
   CPPUNIT_TEST( testAssertLessEqual );
   CPPUNIT_TEST( testAssertGreaterEqual );
+#if CPPUNIT_HAS_CONCEPTS
+  CPPUNIT_TEST( testAssertEqualDoublesOverload );
+  CPPUNIT_TEST( testAssertLessEqualDoublesOverload );
+  CPPUNIT_TEST( testAssertGreaterEqualDoublesOverload );
+#endif // CPPUNIT_HAS_CONCEPTS
   CPPUNIT_TEST( testAssertMessageTrue );
   CPPUNIT_TEST( testAssertMessageFalse );
   CPPUNIT_TEST( testAssertDoubleEquals );
   CPPUNIT_TEST( testAssertDoubleEqualsPrecision );
   CPPUNIT_TEST( testAssertDoubleNonFinite );
+  CPPUNIT_TEST( testAssertDoubleEqualsMixedTypes );
+  CPPUNIT_TEST( testAssertDoubleLessEqualAsserts );
+  CPPUNIT_TEST( testAssertDoubleGreaterEqualAsserts );
   CPPUNIT_TEST( testFail );
+  CPPUNIT_TEST( testAssertExceptionDetail );
+#if CPPUNIT_HAS_CONCEPTS
+  CPPUNIT_TEST( testConceptsAsserts );
+#endif // CPPUNIT_HAS_CONCEPTS
   CPPUNIT_TEST_SUITE_END();
 
 public:
@@ -47,6 +59,11 @@ public:
   void testAssertGreater();
   void testAssertLessEqual();
   void testAssertGreaterEqual();
+#if CPPUNIT_HAS_CONCEPTS
+  void testAssertEqualDoublesOverload();
+  void testAssertLessEqualDoublesOverload();
+  void testAssertGreaterEqualDoublesOverload();
+#endif // CPPUNIT_HAS_CONCEPTS
 
   void testAssertMessageTrue();
   void testAssertMessageFalse();
@@ -54,11 +71,20 @@ public:
   void testAssertDoubleEquals();
   void testAssertDoubleEqualsPrecision();
   void testAssertDoubleNonFinite();
+  void testAssertDoubleEqualsMixedTypes();
+  void testAssertDoubleLessEqualAsserts();
+  void testAssertDoubleGreaterEqualAsserts();
 
   void testAssertLongEquals();
   void testAssertLongNotEquals();
 
   void testFail();
+
+  void testAssertExceptionDetail();
+
+#if CPPUNIT_HAS_CONCEPTS
+  void testConceptsAsserts();
+#endif // CPPUNIT_HAS_CONCEPTS
 
 private:
   TestAssertTest( const TestAssertTest &copy );
@@ -70,6 +96,9 @@ private:
 
   void checkMessageContains( CPPUNIT_NS::Exception *e,
                              std::string expectedMessage );
+
+  void throwsException();
+  void doesNotThrowException();
 
 private:
 };
