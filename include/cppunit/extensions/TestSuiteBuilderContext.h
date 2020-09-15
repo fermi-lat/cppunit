@@ -2,6 +2,7 @@
 #define CPPUNIT_HELPER_TESTSUITEBUILDERCONTEXT_H
 
 #include <cppunit/Portability.h>
+#include <cppunit/extensions/TestFixtureFactory.h>
 #include <map>
 #include <string>
 
@@ -15,35 +16,35 @@ CPPUNIT_NS_BEGIN
 
 class TestSuite;
 class TestFixture;
-class TestFixtureFactory;
 class TestNamer;
 
-/*! \brief Context used when creating test suite in HelperMacros.
- *
- * Base class for all context used when creating test suite. The
- * actual context type during test suite creation is TestSuiteBuilderContext.
+
+/*! \brief (Implementation) Used in HelperMacros.
  *
  * \sa CPPUNIT_TEST_SUITE, CPPUNIT_TEST_SUITE_ADD_TEST, 
  *     CPPUNIT_TEST_SUITE_ADD_CUSTOM_TESTS.
  */
-class CPPUNIT_API TestSuiteBuilderContextBase
+template <typename Fixture>
+class TestSuiteBuilderContextTemplate
 {
+  typedef Fixture FixtureType;
+
 public:
   /*! \brief Constructs a new context.
    *
    * You should not use this. The context is created in 
    * CPPUNIT_TEST_SUITE().
    */
-  TestSuiteBuilderContextBase( TestSuite &suite,
+  TestSuiteBuilderContextTemplate( TestSuite &suite,
                                const TestNamer &namer,
-                               TestFixtureFactory &factory );
+                               TestFixtureFactory<FixtureType> &factory );
 
-  virtual ~TestSuiteBuilderContextBase();
+  ~TestSuiteBuilderContextTemplate() = default;
 
-  TestSuiteBuilderContextBase(TestSuiteBuilderContextBase const &) = default;
-  TestSuiteBuilderContextBase(TestSuiteBuilderContextBase &&) = default;
-  TestSuiteBuilderContextBase & operator =(TestSuiteBuilderContextBase const &) = delete;
-  TestSuiteBuilderContextBase & operator =(TestSuiteBuilderContextBase &&) = delete;
+  TestSuiteBuilderContextTemplate(TestSuiteBuilderContextTemplate const &) = default;
+  TestSuiteBuilderContextTemplate(TestSuiteBuilderContextTemplate &&) = default;
+  TestSuiteBuilderContextTemplate & operator =(TestSuiteBuilderContextTemplate const &) = delete;
+  TestSuiteBuilderContextTemplate & operator =(TestSuiteBuilderContextTemplate &&) = delete;
 
   /*! \brief Adds a test to the fixture suite.
    *
@@ -94,9 +95,9 @@ public:
    */
   const std::string getStringProperty( const std::string &key ) const;
 
-protected:
-  TestFixture *makeTestFixture() const;
+  FixtureType *makeTestFixture() const;
 
+protected:
   // Notes: we use a vector here instead of a map to work-around the
   // shared std::map in dll bug in VC6.
   // See http://www.dinkumware.com/vc_fixes.html for detail.
@@ -105,14 +106,32 @@ protected:
 
   TestSuite &m_suite;
   const TestNamer &m_namer;
-  TestFixtureFactory &m_factory;
+  TestFixtureFactory<Fixture> &m_factory;
 
 private:
   Properties m_properties;
 };
 
 
+/*! \brief Context used when creating test suite in HelperMacros.
+ * \deprecated Not used in HelperMacros anymore.
+ *
+ * Base class for all context used when creating test suite.
+ *
+ * \sa CPPUNIT_TEST_SUITE, CPPUNIT_TEST_SUITE_ADD_TEST, 
+ *     CPPUNIT_TEST_SUITE_ADD_CUSTOM_TESTS.
+ */
+class CPPUNIT_API TestSuiteBuilderContextBase : public TestSuiteBuilderContextTemplate<TestFixture>
+{
+  typedef TestSuiteBuilderContextTemplate<TestFixture> Base;
+
+public:
+  using Base::Base;
+};
+
+
 /*! \brief Type-sage context used when creating test suite in HelperMacros.
+ * \deprecated Not used in HelperMacros anymore.
  * 
  * \sa TestSuiteBuilderContextBase.
  */
@@ -146,6 +165,8 @@ CPPUNIT_NS_END
 #if CPPUNIT_NEED_DLL_DECL
 #pragma warning( pop )
 #endif
+
+#include "TestSuiteBuilderContext.tcc"
 
 #endif // CPPUNIT_HELPER_TESTSUITEBUILDERCONTEXT_H
 

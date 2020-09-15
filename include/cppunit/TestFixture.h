@@ -93,6 +93,34 @@ public:
 };
 
 
+#if CPPUNIT_HAS_CONCEPTS
+
+namespace detail {
+
+template <typename T>
+concept test_fixture_has_setup = requires (T t)
+{
+  t.setUp();
+};
+
+template <typename T>
+concept test_fixture_has_teardown = requires (T t)
+{
+  t.tearDown();
+};
+
+template <typename T>
+concept test_fixture = test_fixture_has_setup<T>
+  && test_fixture_has_teardown<T>;
+
+} // namespace detail
+
+// Check that TestFixture satisfies core::test_fixture concept
+static_assert( detail::test_fixture<TestFixture> );
+
+#endif // CPPUNIT_HAS_CONCEPTS
+
+
 CPPUNIT_NS_END
 
 
