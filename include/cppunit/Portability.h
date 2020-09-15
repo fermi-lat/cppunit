@@ -166,4 +166,26 @@
 # define CPPUNIT_WRAP_COLUMN 79
 #endif
 
+/*! C++20 feature detection
+ */
+#if __cplusplus >= 201703L
+# define CPPUNIT_HAS_CXX17 1
+#endif // __cplusplus >= 201703L
+
+#if CPPUNIT_HAS_CXX17 && defined(__has_include)
+
+# if __has_include(<version>)
+#  include <version>
+# endif // __has_include(<version>)
+
+# if !defined(CPPUNIT_HAS_SOURCE_LOCATION) && !defined(CPPUNIT_HAS_EXPERIMETAL_SOURCE_LOCATION)
+#  if __cpp_lib_source_location && __has_include(<source_location>)
+#    define CPPUNIT_HAS_SOURCE_LOCATION 1
+#  elif __has_include(<experimental/source_location>)
+#    define CPPUNIT_HAS_EXPERIMETAL_SOURCE_LOCATION 1
+#  endif // __cpp_lib_source_location && __has_include(<source_location>)
+#endif // !defined(CPPUNIT_HAS_SOURCE_LOCATION) && !defined(CPPUNIT_HAS_EXPERIMETAL_SOURCE_LOCATION)
+
+#endif // CPPUNIT_HAS_CXX17 && defined(__has_include)
+
 #endif // CPPUNIT_PORTABILITY_H

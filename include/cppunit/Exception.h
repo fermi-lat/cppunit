@@ -25,6 +25,11 @@ public:
    */
   Exception( const Message &message = Message(), 
              const SourceLine &sourceLine = SourceLine() );
+             // For backward compatibility Exception shouldn't
+             // capture source line from where it was created
+             // see ExceptionTest::testDefaultConstructor()
+             // Perhaps because Exception is created not on the same line
+             // where assertion fails
 
 #ifdef CPPUNIT_ENABLE_SOURCELINE_DEPRECATED
   /*!

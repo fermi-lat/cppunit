@@ -55,6 +55,8 @@ private:
                           int failure );
 
   void addTest( std::string testName );
+  // Two functions below expect XML output without line numbers
+  // therefore line capturing should be disabled in SourceLine()
   void addTestFailure( std::string testName,
                        std::string message,
                        CPPUNIT_NS::SourceLine sourceLine = CPPUNIT_NS::SourceLine() );
