@@ -3,18 +3,14 @@
 
 CPPUNIT_NS_BEGIN
 
-
-void 
-assertDoubleEquals( double expected,
-                    double actual,
-                    double delta,
-                    SourceLine sourceLine,
-                    const std::string &message )
+namespace detail
 {
-  AdditionalMessage msg( "Delta   : " + 
-                         assertion_traits<double>::toString(delta) );
-  msg.addDetail( AdditionalMessage(message) );
 
+bool
+doublesEqual( double expected,
+              double actual,
+              double delta )
+{
   bool equal;
   if ( floatingPointIsFinite(expected)  &&  floatingPointIsFinite(actual) )
       equal = fabs( expected - actual ) <= delta;
@@ -34,13 +30,10 @@ assertDoubleEquals( double expected,
     }
   }
 
-  Asserter::failNotEqualIf( !equal,
-                            assertion_traits<double>::toString(expected),
-                            assertion_traits<double>::toString(actual),
-                            sourceLine, 
-                            msg, 
-                            "double equality assertion failed" );
+  return equal;
 }
+
+} // namespace detail
 
 
 CPPUNIT_NS_END
