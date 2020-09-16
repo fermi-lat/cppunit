@@ -1,7 +1,13 @@
 #include "CoreSuite.h"
 #include "TestAssertTest.h"
+#include <cppunit/extensions/TypeInfoHelper.h>
 #include <cppunit/portability/FloatingPoint.h>
+#include <cppunit/TestFailure.h>
+#include <cppunit/TestResult.h>
+#include <cppunit/TestResultCollector.h>
+#include <cppunit/TestRunner.h>
 #include <algorithm>
+#include <functional>
 #include <limits>
 
 /*
@@ -46,9 +52,19 @@ TestAssertTest::tearDown()
 }
 
 
+void
+TestAssertTest::throwsException()
+{
+  throw std::runtime_error("");
+}
+
+
 void 
 TestAssertTest::testAssertThrow()
 {
+   // Special case with this pointer referencing fixture
+   CPPUNIT_ASSERT_THROW( this->throwsException(), std::runtime_error );
+
    CPPUNIT_ASSERT_THROW( throw std::string(), std::string );
 
    try
@@ -66,9 +82,18 @@ TestAssertTest::testAssertThrow()
 }
 
 
+void
+TestAssertTest::doesNotThrowException()
+{
+}
+
+
 void 
 TestAssertTest::testAssertNoThrow()
 {
+   // Special case with this pointer referencing fixture
+   CPPUNIT_ASSERT_NO_THROW( this->doesNotThrowException() );
+
    int x;
    CPPUNIT_ASSERT_NO_THROW( x = 1234 );
    (void)x;
@@ -129,8 +154,19 @@ void
 TestAssertTest::testAssert()
 {
   CPPUNIT_ASSERT_ASSERTION_PASS( CPPUNIT_ASSERT( true ) );
+  CPPUNIT_ASSERT_ASSERTION_PASS( CPPUNIT_ASSERT( "abc" ) );
+  CPPUNIT_ASSERT_ASSERTION_PASS( CPPUNIT_ASSERT( 11 ) );
   
   CPPUNIT_ASSERT_ASSERTION_FAIL( CPPUNIT_ASSERT( false ) );
+  CPPUNIT_ASSERT_ASSERTION_FAIL( CPPUNIT_ASSERT( 0 ) );
+  CPPUNIT_ASSERT_ASSERTION_FAIL( CPPUNIT_ASSERT( std::unique_ptr<char>(nullptr) ) );
+  CPPUNIT_ASSERT_ASSERTION_FAIL( CPPUNIT_ASSERT( std::shared_ptr<char>(nullptr) ) );
+
+  const int x = 5, y = 7, z = 5;
+  CPPUNIT_ASSERT_ASSERTION_FAIL( CPPUNIT_ASSERT( x == y ) );
+  CPPUNIT_ASSERT_ASSERTION_PASS( CPPUNIT_ASSERT( x != y ) );
+  CPPUNIT_ASSERT_ASSERTION_FAIL( CPPUNIT_ASSERT( x != z ) );
+  CPPUNIT_ASSERT_ASSERTION_PASS( CPPUNIT_ASSERT( x == z ) );
 }
 
 
@@ -192,6 +228,183 @@ TestAssertTest::testAssertGreaterEqual()
     CPPUNIT_ASSERT_ASSERTION_FAIL( CPPUNIT_ASSERT_GREATEREQUAL( 2, 1 ) );
 }
 
+
+#if CPPUNIT_HAS_CONCEPTS
+
+void
+TestAssertTest::testAssertEqualDoublesOverload()
+{
+  CPPUNIT_ASSERT_ASSERTION_PASS( CPPUNIT_ASSERT_EQUAL( 1.0, 1.0 ) );
+  // Assuming default epsilon is less than 0.1
+  CPPUNIT_ASSERT_ASSERTION_FAIL( CPPUNIT_ASSERT_EQUAL( 1.0, 1.1 ) );
+  CPPUNIT_ASSERT_ASSERTION_FAIL( CPPUNIT_ASSERT_EQUAL( 1.0, 0.9 ) );
+
+  CPPUNIT_ASSERT_ASSERTION_PASS( CPPUNIT_ASSERT_EQUAL( 1.0f, 1.0f ) );
+  CPPUNIT_ASSERT_ASSERTION_FAIL( CPPUNIT_ASSERT_EQUAL( 1.0f, 1.1f ) );
+  CPPUNIT_ASSERT_ASSERTION_FAIL( CPPUNIT_ASSERT_EQUAL( 1.0f, 0.9f ) );
+
+  CPPUNIT_ASSERT_ASSERTION_PASS( CPPUNIT_ASSERT_EQUAL( 1, 1.0 ) );
+  CPPUNIT_ASSERT_ASSERTION_PASS( CPPUNIT_ASSERT_EQUAL( 1.0f, 1 ) );
+  CPPUNIT_ASSERT_ASSERTION_FAIL( CPPUNIT_ASSERT_EQUAL( 1, 1.1 ) );
+  CPPUNIT_ASSERT_ASSERTION_FAIL( CPPUNIT_ASSERT_EQUAL( 1.1f, 1 ) );
+}
+
+
+void
+TestAssertTest::testAssertLessEqualDoublesOverload()
+{
+  CPPUNIT_ASSERT_ASSERTION_PASS( CPPUNIT_ASSERT_LESSEQUAL( 1.0, 1.0 ) );
+  CPPUNIT_ASSERT_ASSERTION_PASS( CPPUNIT_ASSERT_LESSEQUAL( 1.0, 0.9 ) );
+  CPPUNIT_ASSERT_ASSERTION_FAIL( CPPUNIT_ASSERT_LESSEQUAL( 1.0, 1.1 ) );
+
+  CPPUNIT_ASSERT_ASSERTION_PASS( CPPUNIT_ASSERT_LESSEQUAL( 1.0f, 1.0f ) );
+  CPPUNIT_ASSERT_ASSERTION_PASS( CPPUNIT_ASSERT_LESSEQUAL( 1.0f, 0.9f ) );
+  CPPUNIT_ASSERT_ASSERTION_FAIL( CPPUNIT_ASSERT_LESSEQUAL( 1.0f, 1.1f ) );
+
+  CPPUNIT_ASSERT_ASSERTION_PASS( CPPUNIT_ASSERT_LESSEQUAL( 1, 1.0 ) );
+  CPPUNIT_ASSERT_ASSERTION_PASS( CPPUNIT_ASSERT_LESSEQUAL( 1.0f, 1 ) );
+  CPPUNIT_ASSERT_ASSERTION_FAIL( CPPUNIT_ASSERT_LESSEQUAL( 1, 1.1 ) );
+  CPPUNIT_ASSERT_ASSERTION_FAIL( CPPUNIT_ASSERT_LESSEQUAL( 0.9f, 1 ) );
+}
+
+
+void
+TestAssertTest::testAssertGreaterEqualDoublesOverload()
+{
+  CPPUNIT_ASSERT_ASSERTION_PASS( CPPUNIT_ASSERT_GREATEREQUAL( 1.0, 1.0 ) );
+  CPPUNIT_ASSERT_ASSERTION_PASS( CPPUNIT_ASSERT_GREATEREQUAL( 1.0, 1.1 ) );
+  CPPUNIT_ASSERT_ASSERTION_FAIL( CPPUNIT_ASSERT_GREATEREQUAL( 1.0, 0.9 ) );
+
+  CPPUNIT_ASSERT_ASSERTION_PASS( CPPUNIT_ASSERT_GREATEREQUAL( 1.0f, 1.0f ) );
+  CPPUNIT_ASSERT_ASSERTION_PASS( CPPUNIT_ASSERT_GREATEREQUAL( 1.0f, 1.1f ) );
+  CPPUNIT_ASSERT_ASSERTION_FAIL( CPPUNIT_ASSERT_GREATEREQUAL( 1.0f, 0.9f ) );
+
+  CPPUNIT_ASSERT_ASSERTION_PASS( CPPUNIT_ASSERT_GREATEREQUAL( 1, 1.0 ) );
+  CPPUNIT_ASSERT_ASSERTION_PASS( CPPUNIT_ASSERT_GREATEREQUAL( 1.0f, 1 ) );
+  CPPUNIT_ASSERT_ASSERTION_FAIL( CPPUNIT_ASSERT_GREATEREQUAL( 1, 0.9 ) );
+  CPPUNIT_ASSERT_ASSERTION_FAIL( CPPUNIT_ASSERT_GREATEREQUAL( 1.1f, 1 ) );
+}
+
+
+void
+TestAssertTest::testAssertEqualStringsOverload()
+{
+  // Strings
+  CPPUNIT_ASSERT_ASSERTION_PASS( CPPUNIT_ASSERT_EQUAL( "abc", std::string("abc") ) );
+  CPPUNIT_ASSERT_ASSERTION_PASS( CPPUNIT_ASSERT_EQUAL( std::string("abc"), "abc" ) );
+  CPPUNIT_ASSERT_ASSERTION_FAIL( CPPUNIT_ASSERT_EQUAL( "cba", std::string("abc") ) );
+  CPPUNIT_ASSERT_ASSERTION_FAIL( CPPUNIT_ASSERT_EQUAL( std::string("abc"), "cba" ) );
+
+  // Literals
+  CPPUNIT_ASSERT_ASSERTION_PASS( CPPUNIT_ASSERT_EQUAL( "abc", "abc" ) );
+  CPPUNIT_ASSERT_ASSERTION_FAIL( CPPUNIT_ASSERT_EQUAL( "cba", "abc" ) );
+
+  // Nulls
+  const char *nullString = nullptr;
+  CPPUNIT_ASSERT_ASSERTION_PASS( CPPUNIT_ASSERT_EQUAL( nullptr, nullptr ) );
+  CPPUNIT_ASSERT_ASSERTION_PASS( CPPUNIT_ASSERT_EQUAL( nullString, nullString ) );
+  CPPUNIT_ASSERT_ASSERTION_FAIL( CPPUNIT_ASSERT_EQUAL( nullptr, "abc" ) );
+  CPPUNIT_ASSERT_ASSERTION_FAIL( CPPUNIT_ASSERT_EQUAL( "abc", nullptr ) );
+  CPPUNIT_ASSERT_ASSERTION_FAIL( CPPUNIT_ASSERT_EQUAL( nullString, "abc" ) );
+  CPPUNIT_ASSERT_ASSERTION_FAIL( CPPUNIT_ASSERT_EQUAL( "abc", nullString ) );
+  // std::string can not be equality-compared with raw nullptr
+  CPPUNIT_ASSERT_ASSERTION_FAIL( CPPUNIT_ASSERT_EQUAL( nullString, std::string("abc") ) );
+  CPPUNIT_ASSERT_ASSERTION_FAIL( CPPUNIT_ASSERT_EQUAL( std::string("abc"), nullString ) );
+}
+
+
+void
+TestAssertTest::testAssertLessStringsOverload()
+{
+  CPPUNIT_ASSERT_ASSERTION_PASS( CPPUNIT_ASSERT_LESS( "abc", std::string("abb") ) );
+  CPPUNIT_ASSERT_ASSERTION_PASS( CPPUNIT_ASSERT_LESS( std::string("abc"), "abb" ) );
+  CPPUNIT_ASSERT_ASSERTION_FAIL( CPPUNIT_ASSERT_LESS( "abb", std::string("abc") ) );
+  CPPUNIT_ASSERT_ASSERTION_FAIL( CPPUNIT_ASSERT_LESS( std::string("abb"), "abc" ) );
+
+  CPPUNIT_ASSERT_ASSERTION_PASS( CPPUNIT_ASSERT_LESS( "abc", "abb" ) );
+  CPPUNIT_ASSERT_ASSERTION_FAIL( CPPUNIT_ASSERT_LESS( "abb", "abc" ) );
+
+  const char *nullString = nullptr;
+  CPPUNIT_ASSERT_ASSERTION_FAIL( CPPUNIT_ASSERT_LESS( nullptr, nullptr ) );
+  CPPUNIT_ASSERT_ASSERTION_FAIL( CPPUNIT_ASSERT_LESS( nullString, nullString ) );
+  CPPUNIT_ASSERT_ASSERTION_FAIL( CPPUNIT_ASSERT_LESS( nullptr, "abc" ) );
+  CPPUNIT_ASSERT_ASSERTION_PASS( CPPUNIT_ASSERT_LESS( "abc", nullptr ) );
+  CPPUNIT_ASSERT_ASSERTION_FAIL( CPPUNIT_ASSERT_LESS( nullString, "abc" ) );
+  CPPUNIT_ASSERT_ASSERTION_PASS( CPPUNIT_ASSERT_LESS( "abc", nullString ) );
+  CPPUNIT_ASSERT_ASSERTION_FAIL( CPPUNIT_ASSERT_LESS( nullString, std::string("abc") ) );
+  CPPUNIT_ASSERT_ASSERTION_PASS( CPPUNIT_ASSERT_LESS( std::string("abc"), nullString ) );
+}
+
+
+void
+TestAssertTest::testAssertGreaterStringsOverload()
+{
+  CPPUNIT_ASSERT_ASSERTION_FAIL( CPPUNIT_ASSERT_GREATER( "abc", std::string("abb") ) );
+  CPPUNIT_ASSERT_ASSERTION_FAIL( CPPUNIT_ASSERT_GREATER( std::string("abc"), "abb" ) );
+  CPPUNIT_ASSERT_ASSERTION_PASS( CPPUNIT_ASSERT_GREATER( "abb", std::string("abc") ) );
+  CPPUNIT_ASSERT_ASSERTION_PASS( CPPUNIT_ASSERT_GREATER( std::string("abb"), "abc" ) );
+
+  CPPUNIT_ASSERT_ASSERTION_FAIL( CPPUNIT_ASSERT_GREATER( "abc", "abb" ) );
+  CPPUNIT_ASSERT_ASSERTION_PASS( CPPUNIT_ASSERT_GREATER( "abb", "abc" ) );
+
+  const char *nullString = nullptr;
+  CPPUNIT_ASSERT_ASSERTION_FAIL( CPPUNIT_ASSERT_GREATER( nullptr, nullptr ) );
+  CPPUNIT_ASSERT_ASSERTION_FAIL( CPPUNIT_ASSERT_GREATER( nullString, nullString ) );
+  CPPUNIT_ASSERT_ASSERTION_PASS( CPPUNIT_ASSERT_GREATER( nullptr, "abc" ) );
+  CPPUNIT_ASSERT_ASSERTION_FAIL( CPPUNIT_ASSERT_GREATER( "abc", nullptr ) );
+  CPPUNIT_ASSERT_ASSERTION_PASS( CPPUNIT_ASSERT_GREATER( nullString, "abc" ) );
+  CPPUNIT_ASSERT_ASSERTION_FAIL( CPPUNIT_ASSERT_GREATER( "abc", nullString ) );
+  CPPUNIT_ASSERT_ASSERTION_PASS( CPPUNIT_ASSERT_GREATER( nullString, std::string("abc") ) );
+  CPPUNIT_ASSERT_ASSERTION_FAIL( CPPUNIT_ASSERT_GREATER( std::string("abc"), nullString ) );
+}
+
+
+void
+TestAssertTest::testAssertLessEqualStringsOverload()
+{
+  CPPUNIT_ASSERT_ASSERTION_PASS( CPPUNIT_ASSERT_LESSEQUAL( "abc", std::string("abc") ) );
+  CPPUNIT_ASSERT_ASSERTION_PASS( CPPUNIT_ASSERT_LESSEQUAL( std::string("abc"), "abc" ) );
+  CPPUNIT_ASSERT_ASSERTION_FAIL( CPPUNIT_ASSERT_LESSEQUAL( "abb", std::string("abc") ) );
+  CPPUNIT_ASSERT_ASSERTION_FAIL( CPPUNIT_ASSERT_LESSEQUAL( std::string("abb"), "abc" ) );
+
+  CPPUNIT_ASSERT_ASSERTION_PASS( CPPUNIT_ASSERT_LESSEQUAL( "abc", "abb" ) );
+  CPPUNIT_ASSERT_ASSERTION_FAIL( CPPUNIT_ASSERT_LESSEQUAL( "abb", "abc" ) );
+
+  const char *nullString = nullptr;
+  CPPUNIT_ASSERT_ASSERTION_PASS( CPPUNIT_ASSERT_LESSEQUAL( nullptr, nullptr ) );
+  CPPUNIT_ASSERT_ASSERTION_PASS( CPPUNIT_ASSERT_LESSEQUAL( nullString, nullString ) );
+  CPPUNIT_ASSERT_ASSERTION_FAIL( CPPUNIT_ASSERT_LESSEQUAL( nullptr, "abc" ) );
+  CPPUNIT_ASSERT_ASSERTION_PASS( CPPUNIT_ASSERT_LESSEQUAL( "abc", nullptr ) );
+  CPPUNIT_ASSERT_ASSERTION_FAIL( CPPUNIT_ASSERT_LESSEQUAL( nullString, "abc" ) );
+  CPPUNIT_ASSERT_ASSERTION_PASS( CPPUNIT_ASSERT_LESSEQUAL( "abc", nullString ) );
+  CPPUNIT_ASSERT_ASSERTION_FAIL( CPPUNIT_ASSERT_LESSEQUAL( nullString, std::string("abc") ) );
+  CPPUNIT_ASSERT_ASSERTION_PASS( CPPUNIT_ASSERT_LESSEQUAL( std::string("abc"), nullString ) );
+}
+
+
+void
+TestAssertTest::testAssertGreaterEqualStringsOverload()
+{
+  CPPUNIT_ASSERT_ASSERTION_PASS( CPPUNIT_ASSERT_GREATEREQUAL( "abc", std::string("abc") ) );
+  CPPUNIT_ASSERT_ASSERTION_PASS( CPPUNIT_ASSERT_GREATEREQUAL( std::string("abc"), "abc" ) );
+  CPPUNIT_ASSERT_ASSERTION_FAIL( CPPUNIT_ASSERT_GREATEREQUAL( "abc", std::string("abb") ) );
+  CPPUNIT_ASSERT_ASSERTION_FAIL( CPPUNIT_ASSERT_GREATEREQUAL( std::string("abc"), "abb" ) );
+
+  CPPUNIT_ASSERT_ASSERTION_PASS( CPPUNIT_ASSERT_GREATEREQUAL( "abb", "abc" ) );
+  CPPUNIT_ASSERT_ASSERTION_FAIL( CPPUNIT_ASSERT_GREATEREQUAL( "abc", "abb" ) );
+
+  const char *nullString = nullptr;
+  CPPUNIT_ASSERT_ASSERTION_PASS( CPPUNIT_ASSERT_GREATEREQUAL( nullptr, nullptr ) );
+  CPPUNIT_ASSERT_ASSERTION_PASS( CPPUNIT_ASSERT_GREATEREQUAL( nullString, nullString ) );
+  CPPUNIT_ASSERT_ASSERTION_PASS( CPPUNIT_ASSERT_GREATEREQUAL( nullptr, "abc" ) );
+  CPPUNIT_ASSERT_ASSERTION_FAIL( CPPUNIT_ASSERT_GREATEREQUAL( "abc", nullptr ) );
+  CPPUNIT_ASSERT_ASSERTION_PASS( CPPUNIT_ASSERT_GREATEREQUAL( nullString, "abc" ) );
+  CPPUNIT_ASSERT_ASSERTION_FAIL( CPPUNIT_ASSERT_GREATEREQUAL( "abc", nullString ) );
+  CPPUNIT_ASSERT_ASSERTION_PASS( CPPUNIT_ASSERT_GREATEREQUAL( nullString, std::string("abc") ) );
+  CPPUNIT_ASSERT_ASSERTION_FAIL( CPPUNIT_ASSERT_GREATEREQUAL( std::string("abc"), nullString ) );
+}
+
+#endif // CPPUNIT_HAS_CONCEPTS
 
 
 void 
@@ -296,6 +509,78 @@ TestAssertTest::testAssertDoubleNonFinite()
 }
 
 
+void
+TestAssertTest::testAssertDoubleEqualsMixedTypes()
+{
+  // This test covers types mixing in CPPUNIT_ASSERT_DOUBLES_EQUAL()
+  // that existed in C++11 implementation due to compiler converting types.
+  // In C++20 implementation this kind of types mixing is explicitly
+  // supported in other asserts too.
+
+  // Mixing floats, doubles and ints
+  CPPUNIT_ASSERT_ASSERTION_PASS( CPPUNIT_ASSERT_DOUBLES_EQUAL( 2, 2.0, 0.1 ) );
+  CPPUNIT_ASSERT_ASSERTION_PASS( CPPUNIT_ASSERT_DOUBLES_EQUAL( 2.0, 2, 0.1 ) );
+  CPPUNIT_ASSERT_ASSERTION_PASS( CPPUNIT_ASSERT_DOUBLES_EQUAL( 2, 2.0f, 0.1 ) );
+  CPPUNIT_ASSERT_ASSERTION_PASS( CPPUNIT_ASSERT_DOUBLES_EQUAL( 2.0f, 2, 0.1 ) );
+  CPPUNIT_ASSERT_ASSERTION_PASS( CPPUNIT_ASSERT_DOUBLES_EQUAL( 2.0f, 2.0, 0.1 ) );
+  CPPUNIT_ASSERT_ASSERTION_PASS( CPPUNIT_ASSERT_DOUBLES_EQUAL( 2.0, 2.0f, 0.1 ) );
+  CPPUNIT_ASSERT_ASSERTION_PASS( CPPUNIT_ASSERT_DOUBLES_EQUAL( 2.0f, 2.0, 0.1 ) );
+  CPPUNIT_ASSERT_ASSERTION_PASS( CPPUNIT_ASSERT_DOUBLES_EQUAL( 2.0, 2.0f, 0.1 ) );
+
+  // Integer types converted to double
+  CPPUNIT_ASSERT_ASSERTION_PASS( CPPUNIT_ASSERT_DOUBLES_EQUAL( 2, 2, 0.1 ) );
+  CPPUNIT_ASSERT_ASSERTION_PASS( CPPUNIT_ASSERT_DOUBLES_EQUAL( 2, 2, 0.1 ) );
+}
+
+
+void
+TestAssertTest::testAssertDoubleLessEqualAsserts()
+{
+  CPPUNIT_ASSERT_ASSERTION_PASS( CPPUNIT_ASSERT_DOUBLES_LESSEQUAL( 2.0, 1.0, 0.1 ) );
+  CPPUNIT_ASSERT_ASSERTION_PASS( CPPUNIT_ASSERT_DOUBLES_LESSEQUAL( 2.0, 2.0, 0.1 ) );
+  CPPUNIT_ASSERT_ASSERTION_PASS( CPPUNIT_ASSERT_DOUBLES_LESSEQUAL( 2.0, 2.09, 0.1 ) );
+
+  CPPUNIT_ASSERT_ASSERTION_FAIL( CPPUNIT_ASSERT_DOUBLES_LESSEQUAL( 2.0, 2.1, 0.1 ) );
+
+  // Test types mixing
+  CPPUNIT_ASSERT_ASSERTION_PASS( CPPUNIT_ASSERT_DOUBLES_LESSEQUAL( 2.0, 1.0f, 0.1 ) );
+  CPPUNIT_ASSERT_ASSERTION_PASS( CPPUNIT_ASSERT_DOUBLES_LESSEQUAL( 2.0f, 1.0, 0.1 ) );
+  CPPUNIT_ASSERT_ASSERTION_PASS( CPPUNIT_ASSERT_DOUBLES_LESSEQUAL( 2.0f, 1, 0.1 ) );
+  CPPUNIT_ASSERT_ASSERTION_PASS( CPPUNIT_ASSERT_DOUBLES_LESSEQUAL( 2, 1.0f, 0.1 ) );
+  CPPUNIT_ASSERT_ASSERTION_PASS( CPPUNIT_ASSERT_DOUBLES_LESSEQUAL( 2, 1.0, 0.1 ) );
+  CPPUNIT_ASSERT_ASSERTION_PASS( CPPUNIT_ASSERT_DOUBLES_LESSEQUAL( 2.0, 1, 0.1 ) );
+
+  // Integers
+  CPPUNIT_ASSERT_ASSERTION_PASS( CPPUNIT_ASSERT_DOUBLES_LESSEQUAL( 2, 2, 0.1 ) );
+  CPPUNIT_ASSERT_ASSERTION_PASS( CPPUNIT_ASSERT_DOUBLES_LESSEQUAL( 2L, 2LL, 0.1 ) );
+  CPPUNIT_ASSERT_ASSERTION_PASS( CPPUNIT_ASSERT_DOUBLES_LESSEQUAL( 2U, 2LU, 0.1 ) );
+}
+
+
+void
+TestAssertTest::testAssertDoubleGreaterEqualAsserts()
+{
+  CPPUNIT_ASSERT_ASSERTION_PASS( CPPUNIT_ASSERT_DOUBLES_GREATEREQUAL( 2.0, 3.0, 0.1 ) );
+  CPPUNIT_ASSERT_ASSERTION_PASS( CPPUNIT_ASSERT_DOUBLES_GREATEREQUAL( 2.0, 2.0, 0.1 ) );
+  CPPUNIT_ASSERT_ASSERTION_PASS( CPPUNIT_ASSERT_DOUBLES_GREATEREQUAL( 2.0, 1.91, 0.1 ) );
+
+  CPPUNIT_ASSERT_ASSERTION_FAIL( CPPUNIT_ASSERT_DOUBLES_GREATEREQUAL( 2.0, 1.9, 0.1 ) );
+
+  // Test types mixing
+  CPPUNIT_ASSERT_ASSERTION_PASS( CPPUNIT_ASSERT_DOUBLES_GREATEREQUAL( 2.0, 3.0f, 0.1 ) );
+  CPPUNIT_ASSERT_ASSERTION_PASS( CPPUNIT_ASSERT_DOUBLES_GREATEREQUAL( 2.0f, 3.0, 0.1 ) );
+  CPPUNIT_ASSERT_ASSERTION_PASS( CPPUNIT_ASSERT_DOUBLES_GREATEREQUAL( 2.0f, 3, 0.1 ) );
+  CPPUNIT_ASSERT_ASSERTION_PASS( CPPUNIT_ASSERT_DOUBLES_GREATEREQUAL( 2, 3.0f, 0.1 ) );
+  CPPUNIT_ASSERT_ASSERTION_PASS( CPPUNIT_ASSERT_DOUBLES_GREATEREQUAL( 2, 3.0, 0.1 ) );
+  CPPUNIT_ASSERT_ASSERTION_PASS( CPPUNIT_ASSERT_DOUBLES_GREATEREQUAL( 2.0, 3, 0.1 ) );
+
+  // Integers
+  CPPUNIT_ASSERT_ASSERTION_PASS( CPPUNIT_ASSERT_DOUBLES_GREATEREQUAL( 2, 2, 0.1 ) );
+  CPPUNIT_ASSERT_ASSERTION_PASS( CPPUNIT_ASSERT_DOUBLES_GREATEREQUAL( 2L, 2LL, 0.1 ) );
+  CPPUNIT_ASSERT_ASSERTION_PASS( CPPUNIT_ASSERT_DOUBLES_GREATEREQUAL( 2U, 2LU, 0.1 ) );
+}
+
+
 void 
 TestAssertTest::testFail()
 {
@@ -324,3 +609,149 @@ TestAssertTest::checkMessageContains( CPPUNIT_NS::Exception *e,
       std::search( actual.begin(), actual.end(), 
                    expected.begin(), expected.end() ) != actual.end() );
 }
+
+
+void
+TestAssertTest::testAssertExceptionDetail()
+{
+  // All checks should fail assertion so exception detail can be inspected
+  static const struct
+  {
+    const std::string name;
+    const std::string expectedDetail;
+    const std::function<void()> function;
+  }
+  checks[] =
+  {
+    {
+      "CPPUNIT_ASSERT_THROW",
+      "Expected: " + CPPUNIT_NS::TypeInfoHelper::getClassName( typeid(std::runtime_error) ),
+      [] { CPPUNIT_ASSERT_THROW( , std::runtime_error ); },
+    },
+    {
+      "CPPUNIT_ASSERT_THROW_MESSAGE",
+      "Expected: " + CPPUNIT_NS::TypeInfoHelper::getClassName( typeid(std::runtime_error) ),
+      [] { CPPUNIT_ASSERT_THROW_MESSAGE( "msg", , std::runtime_error ); },
+    },
+    {
+      "CPPUNIT_ASSERT_NO_THROW",
+      "Caught: " + CPPUNIT_NS::TypeInfoHelper::getClassName( typeid(std::runtime_error) ),
+      [] { CPPUNIT_ASSERT_NO_THROW( throw std::runtime_error( "" ) ); },
+    },
+    {
+      "CPPUNIT_ASSERT_NO_THROW_MESSAGE",
+      "Caught: " + CPPUNIT_NS::TypeInfoHelper::getClassName( typeid(std::runtime_error) ),
+      [] { CPPUNIT_ASSERT_NO_THROW_MESSAGE( "msg", throw std::runtime_error( "" ) ); },
+    },
+    // When CppUnit assertion fails, it throws CPPUNIT_NS::Exception
+    {
+      "CPPUNIT_ASSERT_ASSERTION_FAIL",
+      "Expected: " + CPPUNIT_NS::TypeInfoHelper::getClassName( typeid(CPPUNIT_NS::Exception) ),
+      [] { CPPUNIT_ASSERT_ASSERTION_FAIL(); },
+    },
+    {
+      "CPPUNIT_ASSERT_ASSERTION_FAIL_MESSAGE",
+      "Expected: " + CPPUNIT_NS::TypeInfoHelper::getClassName( typeid(CPPUNIT_NS::Exception) ),
+      [] { CPPUNIT_ASSERT_ASSERTION_FAIL_MESSAGE( "msg", ); },
+    },
+    {
+      "CPPUNIT_ASSERT_ASSERTION_PASS",
+      "Caught: " + CPPUNIT_NS::TypeInfoHelper::getClassName( typeid(CPPUNIT_NS::Exception) ),
+      [] { CPPUNIT_ASSERT_ASSERTION_PASS( CPPUNIT_ASSERT( false ) ); },
+    },
+    {
+      "CPPUNIT_ASSERT_ASSERTION_PASS_MESSAGE",
+      "Caught: " + CPPUNIT_NS::TypeInfoHelper::getClassName( typeid(CPPUNIT_NS::Exception) ),
+      [] { CPPUNIT_ASSERT_ASSERTION_PASS_MESSAGE( "msg", CPPUNIT_ASSERT( false ) ); },
+    },
+  };
+
+  for ( const auto &check : checks )
+  {
+    CPPUNIT_NS::TestResult controller;
+    CPPUNIT_NS::TestResultCollector result;
+    controller.addListener( &result );
+    CPPUNIT_NS::TestRunner runner;
+
+    runner.addTest( new CPPUNIT_NS::TestCaller<TestAssertTest>( check.name,
+                                                                check.function,
+                                                                new TestAssertTest() ) );
+    runner.run( controller );
+
+    CPPUNIT_ASSERT_EQUAL_MESSAGE( "All checks are supposed to fail (assert), "
+                                  "check that didn't assert was " + check.name,
+                                  1,
+                                  result.testFailures() );
+
+    const CPPUNIT_NS::TestFailure *failure = *result.failures().begin();
+    CPPUNIT_ASSERT( failure != nullptr );
+
+    const CPPUNIT_NS::Exception *exception = failure->thrownException();
+    CPPUNIT_ASSERT( exception != nullptr );
+
+    const CPPUNIT_NS::Message message = exception->message();
+
+    bool detailFound = false;
+    for ( int i = 0; i < message.detailCount(); ++i )
+    {
+      if ( message.detailAt( i ) == check.expectedDetail )
+      {
+        detailFound = true;
+        break;
+      }
+    }
+
+    CPPUNIT_ASSERT_MESSAGE( "Was expecting detail: " + check.expectedDetail,
+                            detailFound );
+  }
+}
+
+
+#if CPPUNIT_HAS_CONCEPTS
+
+void
+TestAssertTest::testConceptsAsserts()
+{
+  // Mixing types in CPPUNIT_ASSERT_EQUAL()
+  CPPUNIT_ASSERT_ASSERTION_PASS( CPPUNIT_ASSERT_EQUAL( 0u, std::vector<int>().size() ) );
+  CPPUNIT_ASSERT_ASSERTION_FAIL( CPPUNIT_ASSERT_EQUAL( 1u, std::vector<int>().size() ) );
+
+  // Mixing types in CPPUNIT_ASSERT_LESS()
+  CPPUNIT_ASSERT_ASSERTION_PASS( CPPUNIT_ASSERT_LESS( 2, 1LL ) );
+  CPPUNIT_ASSERT_ASSERTION_PASS( CPPUNIT_ASSERT_LESS( 2LL, 1 ) );
+  CPPUNIT_ASSERT_ASSERTION_PASS( CPPUNIT_ASSERT_LESS( 2, 1.0 ) );
+  CPPUNIT_ASSERT_ASSERTION_PASS( CPPUNIT_ASSERT_LESS( 2.0, 1 ) );
+  CPPUNIT_ASSERT_ASSERTION_PASS( CPPUNIT_ASSERT_LESS( 2, 1.0f ) );
+  CPPUNIT_ASSERT_ASSERTION_PASS( CPPUNIT_ASSERT_LESS( 2.0f, 1 ) );
+  CPPUNIT_ASSERT_ASSERTION_PASS( CPPUNIT_ASSERT_LESS( 2.0f, 1.0 ) );
+  CPPUNIT_ASSERT_ASSERTION_PASS( CPPUNIT_ASSERT_LESS( 2.0, 1.0f ) );
+
+  // Mixing types in CPPUNIT_ASSERT_GREATER()
+  CPPUNIT_ASSERT_ASSERTION_PASS( CPPUNIT_ASSERT_GREATER( 1, 2LL ) );
+  CPPUNIT_ASSERT_ASSERTION_PASS( CPPUNIT_ASSERT_GREATER( 1LL, 2 ) );
+  CPPUNIT_ASSERT_ASSERTION_PASS( CPPUNIT_ASSERT_GREATER( 1, 2.0 ) );
+  CPPUNIT_ASSERT_ASSERTION_PASS( CPPUNIT_ASSERT_GREATER( 1.0, 2 ) );
+  CPPUNIT_ASSERT_ASSERTION_PASS( CPPUNIT_ASSERT_GREATER( 1, 2.0f ) );
+  CPPUNIT_ASSERT_ASSERTION_PASS( CPPUNIT_ASSERT_GREATER( 1.0f, 2 ) );
+  CPPUNIT_ASSERT_ASSERTION_PASS( CPPUNIT_ASSERT_GREATER( 1.0f, 2.0 ) );
+  CPPUNIT_ASSERT_ASSERTION_PASS( CPPUNIT_ASSERT_GREATER( 1.0, 2.0 ) );
+
+  // Mixing types in CPPUNIT_ASSERT_LESSEQUAL() is actually not quite
+  // possible in C++20 because it won't compile for floating point types
+  // and CPPUNIT_ASSERT_DOUBLES_LESSEQUAL() should be used instead.
+  // So the floowing asserts are going to test intergers of different
+  // width but of the same signess (otherwise it's going to be
+  // comparison of values of different signess).
+  CPPUNIT_ASSERT_ASSERTION_PASS( CPPUNIT_ASSERT_LESSEQUAL( 2, 1L ) );
+  CPPUNIT_ASSERT_ASSERTION_PASS( CPPUNIT_ASSERT_LESSEQUAL( 2L, 1 ) );
+  CPPUNIT_ASSERT_ASSERTION_PASS( CPPUNIT_ASSERT_LESSEQUAL( 2, 1LL ) );
+  CPPUNIT_ASSERT_ASSERTION_PASS( CPPUNIT_ASSERT_LESSEQUAL( 2LL, 1 ) );
+
+  // Mixing types in CPPUNIT_ASSERT_GREATEREQUAL()
+  CPPUNIT_ASSERT_ASSERTION_PASS( CPPUNIT_ASSERT_GREATEREQUAL( 1, 2LL ) );
+  CPPUNIT_ASSERT_ASSERTION_PASS( CPPUNIT_ASSERT_GREATEREQUAL( 1LL, 2 ) );
+  CPPUNIT_ASSERT_ASSERTION_PASS( CPPUNIT_ASSERT_GREATEREQUAL( 1, 2L ) );
+  CPPUNIT_ASSERT_ASSERTION_PASS( CPPUNIT_ASSERT_GREATEREQUAL( 1L, 2 ) );
+}
+
+#endif // CPPUNIT_HAS_CONCEPTS
