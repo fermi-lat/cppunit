@@ -65,6 +65,7 @@ cppunittestmain_SOURCES = \
   ToolsSuite.h \
 	TrackedTestCase.cpp \
 	TrackedTestCase.h \
+	TypeInfoHelperTest.cpp \
 	UnitTestToolSuite.h \
 	XmlElementTest.h \
 	XmlElementTest.cpp \

@@ -5,6 +5,9 @@
 #include <cppunit/portability/Stream.h>
 #include <string>
 #include <type_traits>
+#if CPPUNIT_HAS_CONCEPTS
+# include <optional>
+#endif // CPPUNIT_HAS_CONCEPTS
 
 
 CPPUNIT_NS_BEGIN
@@ -45,6 +48,28 @@ template<> inline std::string toString(const unsigned char& x)
 {
     return toString(static_cast<unsigned int>(x));
 }
+
+template<>
+inline std::string toString(const std::nullptr_t &)
+{
+    return "nullptr";
+}
+
+#if CPPUNIT_HAS_CONCEPTS
+
+template<>
+inline std::string toString(const char* const& x)
+{
+    return (x != nullptr ? x : toString(nullptr));
+}
+
+template<>
+inline std::string toString(const std::optional<std::string>& x)
+{
+    return (x ? *x : toString(nullptr));
+}
+
+#endif // CPPUNIT_HAS_CONCEPTS
 
 }
 
