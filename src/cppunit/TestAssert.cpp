@@ -3,18 +3,14 @@
 
 CPPUNIT_NS_BEGIN
 
-
-void 
-assertDoubleEquals( double expected,
-                    double actual,
-                    double delta,
-                    SourceLine sourceLine,
-                    const std::string &message )
+namespace detail
 {
-  AdditionalMessage msg( "Delta   : " + 
-                         assertion_traits<double>::toString(delta) );
-  msg.addDetail( AdditionalMessage(message) );
 
+static bool
+doublesEqual( double expected,
+              double actual,
+              double delta )
+{
   bool equal;
   if ( floatingPointIsFinite(expected)  &&  floatingPointIsFinite(actual) )
       equal = fabs( expected - actual ) <= delta;
@@ -34,6 +30,23 @@ assertDoubleEquals( double expected,
     }
   }
 
+  return equal;
+}
+
+
+void
+assertDoubleEquals( double expected,
+                    double actual,
+                    double epsilon,
+                    const AdditionalMessage& message,
+                    const SourceLine& sourceLine )
+{
+  const bool equal = doublesEqual( expected, actual, epsilon );
+
+  AdditionalMessage msg( "Delta   : " +
+                         assertion_traits<double>::toString(epsilon) );
+  msg.addDetail( message );
+
   Asserter::failNotEqualIf( !equal,
                             assertion_traits<double>::toString(expected),
                             assertion_traits<double>::toString(actual),
@@ -41,6 +54,52 @@ assertDoubleEquals( double expected,
                             msg, 
                             "double equality assertion failed" );
 }
+
+
+void
+assertDoubleLessEqual( double expected,
+                       double actual,
+                       double epsilon,
+                       const AdditionalMessage& message,
+                       const SourceLine& sourceLine )
+{
+  AdditionalMessage msg( "Delta   : " +
+                         assertion_traits<double>::toString(epsilon) );
+  msg.addDetail( message );
+
+  if ( !( actual < expected )
+  && !( doublesEqual( expected, actual, epsilon ) ) )
+  {
+    Asserter::failNotLessEqual( assertion_traits<double>::toString(expected),
+                                assertion_traits<double>::toString(actual),
+                                sourceLine,
+                                msg );
+  }
+}
+
+
+void
+assertDoubleGreaterEqual( double expected,
+                          double actual,
+                          double epsilon,
+                          const AdditionalMessage& message,
+                          const SourceLine& sourceLine )
+{
+  AdditionalMessage msg( "Delta   : " +
+                         assertion_traits<double>::toString(epsilon) );
+  msg.addDetail( message );
+
+  if ( !( expected < actual )
+  && !( doublesEqual( expected, actual, epsilon ) ) )
+  {
+    Asserter::failNotGreaterEqual( assertion_traits<double>::toString(expected),
+                                   assertion_traits<double>::toString(actual),
+                                   sourceLine,
+                                   msg );
+  }
+}
+
+} // namespace detail
 
 
 CPPUNIT_NS_END

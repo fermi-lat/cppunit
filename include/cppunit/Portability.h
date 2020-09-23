@@ -166,4 +166,36 @@
 # define CPPUNIT_WRAP_COLUMN 79
 #endif
 
+/*! C++20 feature detection
+ */
+#if __cplusplus >= 201703L
+# define CPPUNIT_LANG_CXX17 1
+#endif // __cplusplus >= 201703L
+
+#if CPPUNIT_LANG_CXX17 && defined(__has_include)
+
+# if __has_include(<version>)
+#  include <version>
+# endif // __has_include(<version>)
+
+# ifndef CPPUNIT_HAS_CONCEPTS
+#  if __cpp_concepts && __has_include(<concepts>)
+#   define CPPUNIT_HAS_CONCEPTS 1
+#  endif // __cpp_concepts && __has_include(<concepts>)
+# endif  // CPPUNIT_HAS_CONCEPTS
+
+#if CPPUNIT_HAS_CONCEPTS
+
+# ifndef CPPUNIT_ENABLE_IMPLICIT_DOUBLES_EQUAL
+#  define CPPUNIT_ENABLE_IMPLICIT_DOUBLES_EQUAL 1
+# endif // CPPUNIT_ENABLE_IMPLICIT_DOUBLES_EQUAL
+
+# ifndef CPPUNIT_ENABLE_STRING_LITERALS
+#  define CPPUNIT_ENABLE_STRING_LITERALS 1
+# endif // CPPUNIT_ENABLE_STRING_LITERALS
+
+#endif // CPPUNIT_HAS_CONCEPTS
+
+#endif // CPPUNIT_LANG_CXX17 && defined(__has_include)
+
 #endif // CPPUNIT_PORTABILITY_H
