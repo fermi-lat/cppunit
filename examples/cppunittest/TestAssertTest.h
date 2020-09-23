@@ -22,6 +22,7 @@ class TestAssertTest : public CPPUNIT_NS::TestFixture
   CPPUNIT_TEST( testAssertDoubleEquals );
   CPPUNIT_TEST( testAssertDoubleEqualsPrecision );
   CPPUNIT_TEST( testAssertDoubleNonFinite );
+  CPPUNIT_TEST( testAssertDoubleEqualsMixedTypes );
   CPPUNIT_TEST( testFail );
   CPPUNIT_TEST_SUITE_END();
 
@@ -54,6 +55,7 @@ public:
   void testAssertDoubleEquals();
   void testAssertDoubleEqualsPrecision();
   void testAssertDoubleNonFinite();
+  void testAssertDoubleEqualsMixedTypes();
 
   void testAssertLongEquals();
   void testAssertLongNotEquals();

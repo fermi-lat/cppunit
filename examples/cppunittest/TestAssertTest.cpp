@@ -296,6 +296,47 @@ TestAssertTest::testAssertDoubleNonFinite()
 }
 
 
+// Type convertible to double
+struct Double
+{
+  operator double() const
+  {
+    return d;
+  }
+
+  double d;
+};
+
+
+void
+TestAssertTest::testAssertDoubleEqualsMixedTypes()
+{
+  // This test covers types mixing in CPPUNIT_ASSERT_DOUBLES_EQUAL()
+  // that existed in C++11 implementation due to compiler converting types.
+
+  // Mixing floats, doubles and ints
+  CPPUNIT_ASSERT_ASSERTION_PASS( CPPUNIT_ASSERT_DOUBLES_EQUAL( 2, 2.0, 0.1 ) );
+  CPPUNIT_ASSERT_ASSERTION_PASS( CPPUNIT_ASSERT_DOUBLES_EQUAL( 2.0, 2, 0.1 ) );
+  CPPUNIT_ASSERT_ASSERTION_PASS( CPPUNIT_ASSERT_DOUBLES_EQUAL( 2, 2.0f, 0.1 ) );
+  CPPUNIT_ASSERT_ASSERTION_PASS( CPPUNIT_ASSERT_DOUBLES_EQUAL( 2.0f, 2, 0.1 ) );
+  CPPUNIT_ASSERT_ASSERTION_PASS( CPPUNIT_ASSERT_DOUBLES_EQUAL( 2.0f, 2.0, 0.1 ) );
+  CPPUNIT_ASSERT_ASSERTION_PASS( CPPUNIT_ASSERT_DOUBLES_EQUAL( 2.0, 2.0f, 0.1 ) );
+  CPPUNIT_ASSERT_ASSERTION_PASS( CPPUNIT_ASSERT_DOUBLES_EQUAL( 2.0f, 2.0, 0.1 ) );
+  CPPUNIT_ASSERT_ASSERTION_PASS( CPPUNIT_ASSERT_DOUBLES_EQUAL( 2.0, 2.0f, 0.1 ) );
+
+  // Integer types converted to double
+  CPPUNIT_ASSERT_ASSERTION_PASS( CPPUNIT_ASSERT_DOUBLES_EQUAL( 2, 2, 0.1 ) );
+  CPPUNIT_ASSERT_ASSERTION_PASS( CPPUNIT_ASSERT_DOUBLES_EQUAL( 2, 2, 0.1 ) );
+
+  // Custom types
+  CPPUNIT_ASSERT_ASSERTION_PASS( CPPUNIT_ASSERT_DOUBLES_EQUAL( Double{2.0}, Double{2}, 0.1 ) );
+  CPPUNIT_ASSERT_ASSERTION_FAIL( CPPUNIT_ASSERT_DOUBLES_EQUAL( Double{2}, Double{2.1}, 0.1 ) );
+  // Types mixing
+  CPPUNIT_ASSERT_ASSERTION_PASS( CPPUNIT_ASSERT_DOUBLES_EQUAL( Double{2.0}, 2, 0.1 ) );
+  CPPUNIT_ASSERT_ASSERTION_FAIL( CPPUNIT_ASSERT_DOUBLES_EQUAL( 2, Double{2.1}, 0.1 ) );
+}
+
+
 void 
 TestAssertTest::testFail()
 {
