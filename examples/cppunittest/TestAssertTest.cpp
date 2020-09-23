@@ -46,9 +46,20 @@ TestAssertTest::tearDown()
 }
 
 
+void
+TestAssertTest::throwsException()
+{
+  throw std::runtime_error("");
+}
+
+
 void 
 TestAssertTest::testAssertThrow()
 {
+   // Special case when assert expression is referencing
+   // this pointer (fixture)
+   CPPUNIT_ASSERT_THROW( this->throwsException(), std::runtime_error );
+
    CPPUNIT_ASSERT_THROW( throw std::string(), std::string );
 
    try
@@ -66,9 +77,19 @@ TestAssertTest::testAssertThrow()
 }
 
 
+void
+TestAssertTest::doesNotThrowException()
+{
+}
+
+
 void 
 TestAssertTest::testAssertNoThrow()
 {
+   // Special case when assert expression is referencing
+   // this pointer (fixture)
+   CPPUNIT_ASSERT_NO_THROW( this->doesNotThrowException() );
+
    int x;
    CPPUNIT_ASSERT_NO_THROW( x = 1234 );
    (void)x;
@@ -125,12 +146,75 @@ TestAssertTest::testAssertAssertionPass()
 }
 
 
+// Type convertible to int
+struct Int
+{
+  operator int () const
+  {
+    return i;
+  }
+
+  int i;
+};
+
+
 void 
 TestAssertTest::testAssert()
 {
   CPPUNIT_ASSERT_ASSERTION_PASS( CPPUNIT_ASSERT( true ) );
   
   CPPUNIT_ASSERT_ASSERTION_FAIL( CPPUNIT_ASSERT( false ) );
+
+  // Values convertible to bool
+  CPPUNIT_ASSERT_ASSERTION_PASS( CPPUNIT_ASSERT( 'a' ) );
+  CPPUNIT_ASSERT_ASSERTION_PASS( CPPUNIT_ASSERT( "abc" ) );
+  const char *trueString = "cba";
+  CPPUNIT_ASSERT_ASSERTION_PASS( CPPUNIT_ASSERT( trueString ) );
+  CPPUNIT_ASSERT_ASSERTION_PASS( CPPUNIT_ASSERT( 11 ) );
+  CPPUNIT_ASSERT_ASSERTION_PASS( CPPUNIT_ASSERT( 11LL ) );
+  CPPUNIT_ASSERT_ASSERTION_PASS( CPPUNIT_ASSERT( 11uLL ) );
+  CPPUNIT_ASSERT_ASSERTION_PASS( CPPUNIT_ASSERT( 1.0 ) );
+  CPPUNIT_ASSERT_ASSERTION_PASS( CPPUNIT_ASSERT( 2.0f ) );
+  CPPUNIT_ASSERT_ASSERTION_PASS( CPPUNIT_ASSERT( [] { return true; } () ) );
+  CPPUNIT_ASSERT_ASSERTION_PASS( CPPUNIT_ASSERT( Int{1} ) );
+
+  CPPUNIT_ASSERT_ASSERTION_FAIL( CPPUNIT_ASSERT( nullptr ) );
+  CPPUNIT_ASSERT_ASSERTION_FAIL( CPPUNIT_ASSERT( '\0' ) );
+  const char *falseString = nullptr;
+  CPPUNIT_ASSERT_ASSERTION_FAIL( CPPUNIT_ASSERT( falseString ) );
+  CPPUNIT_ASSERT_ASSERTION_FAIL( CPPUNIT_ASSERT( 0 ) );
+  CPPUNIT_ASSERT_ASSERTION_FAIL( CPPUNIT_ASSERT( 0LL ) );
+  CPPUNIT_ASSERT_ASSERTION_FAIL( CPPUNIT_ASSERT( 0uLL ) );
+  CPPUNIT_ASSERT_ASSERTION_FAIL( CPPUNIT_ASSERT( 0.0 ) );
+  CPPUNIT_ASSERT_ASSERTION_FAIL( CPPUNIT_ASSERT( 0.0f ) );
+  CPPUNIT_ASSERT_ASSERTION_FAIL( CPPUNIT_ASSERT( [] { return false; } () ) );
+  CPPUNIT_ASSERT_ASSERTION_FAIL( CPPUNIT_ASSERT( std::unique_ptr<char>(nullptr) ) );
+  CPPUNIT_ASSERT_ASSERTION_FAIL( CPPUNIT_ASSERT( std::shared_ptr<char>(nullptr) ) );
+  CPPUNIT_ASSERT_ASSERTION_FAIL( CPPUNIT_ASSERT( Int{0} ) );
+
+  // Expressions convertible to bool
+  CPPUNIT_ASSERT_ASSERTION_PASS( CPPUNIT_ASSERT( trueString != nullptr ) );
+  CPPUNIT_ASSERT_ASSERTION_PASS( CPPUNIT_ASSERT( falseString == nullptr ) );
+
+  // Types convertible to bool
+  struct True
+  {
+    explicit operator bool() const
+    {
+      return true;
+    }
+  };
+
+  struct False
+  {
+    explicit operator bool() const
+    {
+      return false;
+    }
+  };
+
+  CPPUNIT_ASSERT_ASSERTION_PASS( CPPUNIT_ASSERT( True{} ) );
+  CPPUNIT_ASSERT_ASSERTION_FAIL( CPPUNIT_ASSERT( False{} ) );
 }
 
 
@@ -142,11 +226,38 @@ TestAssertTest::testAssertEqual()
 {
   CPPUNIT_ASSERT_ASSERTION_PASS( CPPUNIT_ASSERT_EQUAL( 1, 1 ) );
   CPPUNIT_ASSERT_ASSERTION_PASS( CPPUNIT_ASSERT_EQUAL( 1, foo() ) );
+  CPPUNIT_ASSERT_ASSERTION_PASS( CPPUNIT_ASSERT_EQUAL( 1, [] { return 1; } () ) );
   CPPUNIT_ASSERT_ASSERTION_PASS( CPPUNIT_ASSERT_EQUAL( 12345678, 12345678 ) );
   CPPUNIT_ASSERT_ASSERTION_PASS( CPPUNIT_ASSERT_EQUAL( EnumClass::VALUE1, EnumClass::VALUE1 ) );
 
   CPPUNIT_ASSERT_ASSERTION_FAIL( CPPUNIT_ASSERT_EQUAL( 1, 2 ) );
   CPPUNIT_ASSERT_ASSERTION_FAIL( CPPUNIT_ASSERT_EQUAL( EnumClass::VALUE1, EnumClass::VALUE2 ) );
+
+  CPPUNIT_ASSERT_ASSERTION_PASS( CPPUNIT_ASSERT_EQUAL( std::string("abc"), std::string("abc") ) );
+  CPPUNIT_ASSERT_ASSERTION_FAIL( CPPUNIT_ASSERT_EQUAL( std::string("cba"), std::string("abc") ) );
+
+  // Type convertible to string
+  struct Str
+  {
+    bool operator == ( const Str &other ) const
+    {
+      return ( str == other.str );
+    }
+
+    operator const char* () const
+    {
+      return str.c_str();
+    }
+
+    std::string str;
+  };
+
+  CPPUNIT_ASSERT_ASSERTION_PASS( CPPUNIT_ASSERT_EQUAL( Str{"abc"}, Str{"abc"} ) );
+  CPPUNIT_ASSERT_ASSERTION_FAIL( CPPUNIT_ASSERT_EQUAL( Str{"cba"}, Str{"abc"} ) );
+
+  // Custom types
+  CPPUNIT_ASSERT_ASSERTION_PASS( CPPUNIT_ASSERT_EQUAL( Int{11}, Int{11} ) );
+  CPPUNIT_ASSERT_ASSERTION_FAIL( CPPUNIT_ASSERT_EQUAL( Int{10}, Int{11} ) );
 }
 
 
@@ -157,6 +268,10 @@ TestAssertTest::testAssertLess()
     CPPUNIT_ASSERT_ASSERTION_PASS( CPPUNIT_ASSERT_LESS( 12345679, 12345678 ) );
 
     CPPUNIT_ASSERT_ASSERTION_FAIL( CPPUNIT_ASSERT_LESS( 1, 2 ) );
+
+    // Custom types
+    CPPUNIT_ASSERT_ASSERTION_PASS( CPPUNIT_ASSERT_LESS( Int{2}, Int{1} ) );
+    CPPUNIT_ASSERT_ASSERTION_FAIL( CPPUNIT_ASSERT_LESS( Int{2}, Int{3} ) );
 }
 
 
@@ -168,6 +283,10 @@ TestAssertTest::testAssertGreater()
 
     CPPUNIT_ASSERT_ASSERTION_FAIL( CPPUNIT_ASSERT_GREATER( 2, 1 ) );
     CPPUNIT_ASSERT_ASSERTION_FAIL( CPPUNIT_ASSERT_GREATER( 2, 2 ) );
+
+    // Custom types
+    CPPUNIT_ASSERT_ASSERTION_FAIL( CPPUNIT_ASSERT_GREATER( Int{2}, Int{1} ) );
+    CPPUNIT_ASSERT_ASSERTION_PASS( CPPUNIT_ASSERT_GREATER( Int{2}, Int{3} ) );
 }
 
 
@@ -179,6 +298,11 @@ TestAssertTest::testAssertLessEqual()
     CPPUNIT_ASSERT_ASSERTION_PASS( CPPUNIT_ASSERT_LESSEQUAL( 2, 2 ) );
 
     CPPUNIT_ASSERT_ASSERTION_FAIL( CPPUNIT_ASSERT_LESSEQUAL( 1, 2 ) );
+
+    // Custom types
+    CPPUNIT_ASSERT_ASSERTION_PASS( CPPUNIT_ASSERT_LESSEQUAL( Int{2}, Int{1} ) );
+    CPPUNIT_ASSERT_ASSERTION_PASS( CPPUNIT_ASSERT_LESSEQUAL( Int{2}, Int{2} ) );
+    CPPUNIT_ASSERT_ASSERTION_FAIL( CPPUNIT_ASSERT_LESSEQUAL( Int{2}, Int{3} ) );
 }
 
 void
@@ -190,6 +314,11 @@ TestAssertTest::testAssertGreaterEqual()
     CPPUNIT_ASSERT_ASSERTION_PASS( CPPUNIT_ASSERT_GREATEREQUAL( 2, 2 ) );
 
     CPPUNIT_ASSERT_ASSERTION_FAIL( CPPUNIT_ASSERT_GREATEREQUAL( 2, 1 ) );
+
+    // Custom types
+    CPPUNIT_ASSERT_ASSERTION_FAIL( CPPUNIT_ASSERT_GREATEREQUAL( Int{2}, Int{1} ) );
+    CPPUNIT_ASSERT_ASSERTION_PASS( CPPUNIT_ASSERT_GREATEREQUAL( Int{2}, Int{2} ) );
+    CPPUNIT_ASSERT_ASSERTION_PASS( CPPUNIT_ASSERT_GREATEREQUAL( Int{2}, Int{3} ) );
 }
 
 

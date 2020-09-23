@@ -271,13 +271,13 @@ void assertGreaterEqual( const T& expected,
  * \ingroup Assertions
  */
 #define CPPUNIT_ASSERT(condition)                                                 \
-  ( CPPUNIT_NS::Asserter::failIf( !(condition),                                   \
+  ( CPPUNIT_NS::Asserter::failIf( !static_cast<bool>(condition),                  \
                                  CPPUNIT_NS::Message( "assertion failed",         \
                                                       "Expression: " #condition), \
                                  CPPUNIT_SOURCELINE() ) )
 #else
 #define CPPUNIT_ASSERT(condition)                                            \
-  ( CPPUNIT_NS::Asserter::failIf( !(condition),                              \
+  ( CPPUNIT_NS::Asserter::failIf( !static_cast<bool>(condition),             \
                                   CPPUNIT_NS::Message( "assertion failed" ), \
                                   CPPUNIT_SOURCELINE() ) )
 #endif
@@ -290,7 +290,7 @@ void assertGreaterEqual( const T& expected,
  *                  test failed.
  */
 #define CPPUNIT_ASSERT_MESSAGE(message,condition)                          \
-  ( CPPUNIT_NS::Asserter::failIf( !(condition),                            \
+  ( CPPUNIT_NS::Asserter::failIf( !static_cast<bool>(condition),           \
                                   CPPUNIT_NS::Message( "assertion failed", \
                                                        "Expression: "      \
                                                        #condition,         \

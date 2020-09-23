@@ -71,6 +71,9 @@ private:
   void checkMessageContains( CPPUNIT_NS::Exception *e,
                              std::string expectedMessage );
 
+  void throwsException();
+  void doesNotThrowException();
+
 private:
 };
 
