@@ -8,6 +8,9 @@
 #include <cppunit/tools/StringHelper.h>
 #include <stdio.h>
 #include <float.h> // For struct assertion_traits<double>
+#if CPPUNIT_HAS_CONCEPTS
+# include <concepts>
+#endif // CPPUNIT_HAS_CONCEPTS
 
 // Work around "passing 'T' chooses 'int' over 'unsigned int'" warnings when T
 // is an enum type:
@@ -153,6 +156,30 @@ inline std::string message_to_string( const char * s )
     return s;
 }
 
+
+#if CPPUNIT_HAS_CONCEPTS
+
+namespace detail
+{
+
+
+/*! \brief This is used to check that lambdas (and other executables)
+ * passed to asserts fit expected interface.
+ */
+template <typename T>
+concept executable =
+  // Executable should be a function that takes no arguments
+  std::invocable<T>;
+
+static_assert( detail::executable<decltype([] {})> );
+static_assert( detail::executable<void (*) ()> );
+
+
+} // namespace detail
+
+#endif // CPPUNIT_HAS_CONCEPTS
+
+
 /*! \brief (Implementation) Asserts that two objects of the same type are equals.
  * Use CPPUNIT_ASSERT_EQUAL instead of this function.
  * \sa assertion_traits, Asserter::failNotEqual().
@@ -261,6 +288,106 @@ void assertGreaterEqual( const T& expected,
                                message );
     }
 }
+
+
+// implementation detail
+#if defined(CPPUNIT_USE_TYPEINFO_NAME)
+#define CPPUNIT_EXTRACT_EXCEPTION_TYPE_( exception, no_rtti_message ) \
+   CPPUNIT_NS::TypeInfoHelper::getClassName( typeid(exception) )
+#else
+#define CPPUNIT_EXTRACT_EXCEPTION_TYPE_( exception, no_rtti_message ) \
+   std::string( no_rtti_message )
+#endif // CPPUNIT_USE_TYPEINFO_NAME
+
+// implementation detail
+#define CPPUNIT_GET_PARAMETER_STRING( parameter ) #parameter
+
+
+namespace detail
+{
+
+/** \brief (Implementation) Asserts that executable is throwing exception
+ * of expected type. Use CPPUNIT_ASSERT_THROW instead of this function.
+ * \sa CPPUNIT_ASSERT_THROW, CPPUNIT_ASSERT_THROW_MESSAGE.
+ */
+template <typename ExceptionType,
+          typename Executable>
+#if CPPUNIT_HAS_CONCEPTS
+  requires ( detail::executable<Executable> )
+#endif // CPPUNIT_HAS_CONCEPTS
+void assertThrows( const Executable& executable,
+                   const AdditionalMessage& message,
+                   const SourceLine& sourceLine )
+{
+  Message cpputMsg_( "expected exception not thrown" );
+  cpputMsg_.addDetail( message );
+  cpputMsg_.addDetail( "Expected: "
+                       CPPUNIT_GET_PARAMETER_STRING( ExceptionType ) );
+
+  try
+  {
+    executable();
+  }
+  catch ( const ExceptionType & )
+  {
+    return;
+  }
+  catch ( const std::exception &e)
+  {
+    cpputMsg_.addDetail( "Actual  : " +
+                         CPPUNIT_EXTRACT_EXCEPTION_TYPE_( e,
+                                                          "std::exception or derived") );
+    cpputMsg_.addDetail( std::string("What()  : ") + e.what() );
+  }
+  catch ( ... )
+  {
+    cpputMsg_.addDetail( "Actual  : unknown.");
+  }
+
+  Asserter::fail( cpputMsg_,
+                  sourceLine );
+}
+
+
+/** \brief (Implementation) Asserts that executable does not throw exception.
+ * Use CPPUNIT_ASSERT_NO_THROW instead of this function.
+ * \sa CPPUNIT_ASSERT_NO_THROW, CPPUNIT_ASSERT_NO_THROW_MESSAGE.
+ */
+template <typename Executable>
+#if CPPUNIT_HAS_CONCEPTS
+  requires ( detail::executable<Executable> )
+#endif // CPPUNIT_HAS_CONCEPTS
+void assertDoesNotThrow( const Executable& executable,
+                         const AdditionalMessage& message,
+                         const SourceLine& sourceLine )
+{
+  Message cpputMsg_( "unexpected exception caught" );
+  cpputMsg_.addDetail( message );
+
+  try
+  {
+    executable();
+    return;
+  }
+  catch ( const std::exception &e )
+  {
+    cpputMsg_.addDetail( "Caught: " +
+                         CPPUNIT_EXTRACT_EXCEPTION_TYPE_( e,
+                                                          "std::exception or derived" ) );
+    cpputMsg_.addDetail( std::string("What(): ") + e.what() );
+  }
+  catch ( ... )
+  {
+    cpputMsg_.addDetail( "Caught: unknown." );
+  }
+
+  Asserter::fail( cpputMsg_,
+                  sourceLine );
+}
+
+} // namespace detail
+
+
 /* A set of macros which allow us to get the line number
  * and file name at the point of an error.
  * Just goes to show that preprocessors do have some
@@ -508,18 +635,8 @@ void assertGreaterEqual( const T& expected,
                                  ExceptionType )
 
 
-// implementation detail
-#if defined(CPPUNIT_USE_TYPEINFO_NAME)
-#define CPPUNIT_EXTRACT_EXCEPTION_TYPE_( exception, no_rtti_message ) \
-   CPPUNIT_NS::TypeInfoHelper::getClassName( typeid(exception) )
-#else
-#define CPPUNIT_EXTRACT_EXCEPTION_TYPE_( exception, no_rtti_message ) \
-   std::string( no_rtti_message )
-#endif // CPPUNIT_USE_TYPEINFO_NAME
-
-// implementation detail
-#define CPPUNIT_GET_PARAMETER_STRING( parameter ) #parameter
-
+// XXX: Note that this exploits the fact that [&] captures this pointer,
+// so lambda that wraps up `expression` can be called from fixture's method.
 /** Asserts that the given expression throws an exception of the specified type, 
  * setting a user supplied message in case of failure. 
  * \ingroup Assertions
@@ -530,32 +647,9 @@ void assertGreaterEqual( const T& expected,
  * \endcode
  */
 # define CPPUNIT_ASSERT_THROW_MESSAGE( message, expression, ExceptionType )   \
-   do {                                                                       \
-      bool cpputCorrectExceptionThrown_ = false;                              \
-      CPPUNIT_NS::Message cpputMsg_( "expected exception not thrown" );       \
-      cpputMsg_.addDetail( CPPUNIT_NS::message_to_string(message) );                                         \
-      cpputMsg_.addDetail( "Expected: "                                       \
-                           CPPUNIT_GET_PARAMETER_STRING( ExceptionType ) );   \
-                                                                              \
-      try {                                                                   \
-         expression;                                                          \
-      } catch ( const ExceptionType & ) {                                     \
-         cpputCorrectExceptionThrown_ = true;                                 \
-      } catch ( const std::exception &e) {                                    \
-         cpputMsg_.addDetail( "Actual  : " +                                  \
-                              CPPUNIT_EXTRACT_EXCEPTION_TYPE_( e,             \
-                                          "std::exception or derived") );     \
-         cpputMsg_.addDetail( std::string("What()  : ") + e.what() );         \
-      } catch ( ... ) {                                                       \
-         cpputMsg_.addDetail( "Actual  : unknown.");                          \
-      }                                                                       \
-                                                                              \
-      if ( cpputCorrectExceptionThrown_ )                                     \
-	    { break; }                                                        \
-                                                                              \
-      CPPUNIT_NS::Asserter::fail( cpputMsg_,                                  \
-                                  CPPUNIT_SOURCELINE() );                     \
-   } while ( false )
+  ( CPPUNIT_NS::detail::assertThrows<ExceptionType>( [&] { expression; },     \
+                                                     CPPUNIT_NS::message_to_string(message), \
+                                                     CPPUNIT_SOURCELINE() ) )
 
 
 /** Asserts that the given expression does not throw any exceptions.
@@ -583,25 +677,9 @@ void assertGreaterEqual( const T& expected,
  * \endcode
  */
 # define CPPUNIT_ASSERT_NO_THROW_MESSAGE( message, expression )               \
-   do {                                                                       \
-      CPPUNIT_NS::Message cpputMsg_( "unexpected exception caught" );         \
-      cpputMsg_.addDetail( CPPUNIT_NS::message_to_string(message) );                                         \
-                                                                              \
-      try {                                                                   \
-         expression;                                                          \
-      } catch ( const std::exception &e ) {                                   \
-         cpputMsg_.addDetail( "Caught: " +                                    \
-                              CPPUNIT_EXTRACT_EXCEPTION_TYPE_( e,             \
-                                          "std::exception or derived" ) );    \
-         cpputMsg_.addDetail( std::string("What(): ") + e.what() );           \
-         CPPUNIT_NS::Asserter::fail( cpputMsg_,                               \
-                                     CPPUNIT_SOURCELINE() );                  \
-      } catch ( ... ) {                                                       \
-         cpputMsg_.addDetail( "Caught: unknown." );                           \
-         CPPUNIT_NS::Asserter::fail( cpputMsg_,                               \
-                                     CPPUNIT_SOURCELINE() );                  \
-      }                                                                       \
-   } while ( false )
+  ( CPPUNIT_NS::detail::assertDoesNotThrow( [&] { expression; },              \
+                                            CPPUNIT_NS::message_to_string(message), \
+                                            CPPUNIT_SOURCELINE() ) )
 
 
 /** Asserts that an assertion fail.

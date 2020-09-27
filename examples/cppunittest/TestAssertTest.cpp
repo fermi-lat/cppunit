@@ -46,9 +46,20 @@ TestAssertTest::tearDown()
 }
 
 
+void
+TestAssertTest::throwsException()
+{
+  throw std::runtime_error("");
+}
+
+
 void 
 TestAssertTest::testAssertThrow()
 {
+   // Special case when assert expression is referencing
+   // this pointer (fixture)
+   CPPUNIT_ASSERT_THROW( this->throwsException(), std::runtime_error );
+
    CPPUNIT_ASSERT_THROW( throw std::string(), std::string );
 
    try
@@ -66,9 +77,19 @@ TestAssertTest::testAssertThrow()
 }
 
 
+void
+TestAssertTest::doesNotThrowException()
+{
+}
+
+
 void 
 TestAssertTest::testAssertNoThrow()
 {
+   // Special case when assert expression is referencing
+   // this pointer (fixture)
+   CPPUNIT_ASSERT_NO_THROW( this->doesNotThrowException() );
+
    int x;
    CPPUNIT_ASSERT_NO_THROW( x = 1234 );
    (void)x;
