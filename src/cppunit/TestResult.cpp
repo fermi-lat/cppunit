@@ -5,6 +5,7 @@
 #include <cppunit/tools/Algorithm.h>
 #include <cppunit/portability/Stream.h>
 #include <algorithm>
+#include <cstdlib>
 #include "DefaultProtector.h"
 #include "ProtectorChain.h"
 #include "ProtectorContext.h"
@@ -18,7 +19,8 @@ TestResult::TestResult( SynchronizationObject *syncObject )
     , m_protectorChain( new ProtectorChain )
     , m_stop( false )
 { 
-  m_protectorChain->push( new DefaultProtector() );
+  if (!std::getenv("CPPUNIT_PROPAGATE_EXCEPTIONS"))
+    m_protectorChain->push( new DefaultProtector() );
 }
 
 
