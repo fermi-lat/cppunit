@@ -11,7 +11,8 @@
 
 // Work around "passing 'T' chooses 'int' over 'unsigned int'" warnings when T
 // is an enum type:
-#if defined __GNUC__ && (__GNUC__ < 4 || (__GNUC__ == 4 && __GNUC_MINOR__ < 6))
+#if defined __GNUC__ && (__GNUC__ < 4 || (__GNUC__ == 4 && __GNUC_MINOR__ < 6)) \
+    && !defined __clang__
 #pragma GCC system_header
 #endif
 
