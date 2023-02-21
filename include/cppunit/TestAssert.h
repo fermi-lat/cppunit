@@ -112,7 +112,7 @@ struct assertion_traits<double>
 #ifdef __STDC_SECURE_LIB__ // Use secure version with visual studio 2005 to avoid warning.
        sprintf_s(buffer, sizeof(buffer), "%.*g", precision, x); 
 #else	
-       sprintf(buffer, "%.*g", precision, x); 
+       snprintf(buffer, sizeof(buffer), "%.*g", precision, x); 
 #endif
        return buffer;
     }
