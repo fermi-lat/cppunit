@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "132cf981_af84a77a",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1000045
+      },
+      "writtenOn": "2023-05-08T07:18:49Z",
+      "side": 1,
+      "message": "\u003e Patch Set 1:\n\u003e \n\u003e A polite ping, still working on this patch? Do not forget to rebase it first. See https://wiki.documentfoundation.org/Development/Review_bot\n\nYes, this is still open for review, intended to be included in a future CppUnit release.",
+      "revId": "fbdb59310da9a09cb81aa1d8137413ec8ef82fd1",
+      "serverId": "6622c302-437a-49ad-a91d-55ba7dcf1615"
+    }
+  ]
+}
