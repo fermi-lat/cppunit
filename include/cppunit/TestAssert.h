@@ -8,6 +8,8 @@
 #include <cppunit/tools/StringHelper.h>
 #include <stdio.h>
 #include <float.h> // For struct assertion_traits<double>
+#include <limits>
+#include <type_traits>
 
 // Work around "passing 'T' chooses 'int' over 'unsigned int'" warnings when T
 // is an enum type:
@@ -173,6 +175,57 @@ void assertEquals( const T& expected,
   }
 }
 
+// In C++17, this could use unary left fold expression and be as simple as
+// template <class T, class... Test> constexpr bool is_any_of_v = (... || std::is_same_v<T, Test>);
+
+template <class...>
+struct is_any_of {
+    static constexpr bool value = false;
+};
+
+template <class T, class Test, class... Rest>
+struct is_any_of<T, Test, Rest...> {
+    static constexpr bool value = std::is_same<T, Test>::value || is_any_of<T, Rest...>::value;
+};
+
+// Avoid bool and different flavors of characters
+template <class T>
+struct is_integer {
+    static constexpr bool value = std::is_integral<T>::value
+#if defined __cpp_char8_t
+                                  && !std::is_same_v<T, char8_t>
+#endif
+                                  && !is_any_of<T, bool, char, wchar_t, char16_t, char32_t>::value;
+};
+
+template<typename Nactual, typename N>
+void checkExpectedRange( N expected, SourceLine sourceLine )
+{
+    // Sanity checks: is expected value reasonable?
+    Asserter::failIf(expected > std::numeric_limits<Nactual>::max(),
+        "Expected value is greater than maximum possible actual value",
+        sourceLine);
+    Asserter::failIf(expected < std::numeric_limits<Nactual>::min(),
+        "Expected value is less than minimum possible actual value",
+        sourceLine);
+}
+
+// An overload that accepts different integral types, to allow numeric literals like '1', '1u'
+// as expected values, without casting them explicitly to the actual type
+template <typename N1, typename N2,
+          typename std::enable_if<is_integer<N1>::value && is_integer<N2>::value
+                                      && std::is_signed<N1>::value == std::is_signed<N2>::value,
+                                  int>::type = 0>
+void assertEquals( N1 expected,
+                   N2 actual,
+                   SourceLine sourceLine,
+                   const std::string& message )
+{
+    checkExpectedRange<N2>(expected, sourceLine);
+    // At this point, we know that expected value fits into N2 range
+    assertEquals<N2>(expected, actual, sourceLine, message);
+}
+
 
 /*! \brief (Implementation) Asserts that two double are equals given a tolerance.
  * Use CPPUNIT_ASSERT_DOUBLES_EQUAL instead of this function.
@@ -205,6 +258,22 @@ void assertLess( const T& expected,
     }
 }
 
+// An overload that accepts different integral types, to allow numeric literals like '1', '1u'
+// as expected values, without casting them explicitly to the actual type
+template <typename N1, typename N2,
+          typename std::enable_if<is_integer<N1>::value && is_integer<N2>::value
+                                      && std::is_signed<N1>::value == std::is_signed<N2>::value,
+                                  int>::type = 0>
+void assertLess( N1 expected,
+                 N2 actual,
+                 SourceLine sourceLine,
+                 const std::string& message )
+{
+    checkExpectedRange<N2>(expected, sourceLine);
+    // At this point, we know that expected value fits into N2 range
+    assertLess<N2>(expected, actual, sourceLine, message);
+}
+
 
 /*! \brief (Implementation) Asserts that an object is less than another one of the same type
  * Use CPPUNIT_ASSERT_LESS, CPPUNIT_ASSERT_GREATER instead of this function.
@@ -223,6 +292,22 @@ void assertGreater( const T& expected,
                                sourceLine,
                                message );
     }
+}
+
+// An overload that accepts different integral types, to allow numeric literals like '1', '1u'
+// as expected values, without casting them explicitly to the actual type
+template <typename N1, typename N2,
+          typename std::enable_if<is_integer<N1>::value && is_integer<N2>::value
+                                      && std::is_signed<N1>::value == std::is_signed<N2>::value,
+                                  int>::type = 0>
+void assertGreater( N1 expected,
+                    N2 actual,
+                    SourceLine sourceLine,
+                    const std::string& message )
+{
+    checkExpectedRange<N2>(expected, sourceLine);
+    // At this point, we know that expected value fits into N2 range
+    assertGreater<N2>(expected, actual, sourceLine, message);
 }
 
 /*! \brief (Implementation) Asserts that two objects of the same type are equals.
@@ -244,6 +329,22 @@ void assertLessEqual( const T& expected,
     }
 }
 
+// An overload that accepts different integral types, to allow numeric literals like '1', '1u'
+// as expected values, without casting them explicitly to the actual type
+template <typename N1, typename N2,
+          typename std::enable_if<is_integer<N1>::value && is_integer<N2>::value
+                                      && std::is_signed<N1>::value == std::is_signed<N2>::value,
+                                  int>::type = 0>
+void assertLessEqual( N1 expected,
+                      N2 actual,
+                      SourceLine sourceLine,
+                      const std::string& message )
+{
+    checkExpectedRange<N2>(expected, sourceLine);
+    // At this point, we know that expected value fits into N2 range
+    assertLessEqual<N2>(expected, actual, sourceLine, message);
+}
+
 /*! \brief (Implementation) Asserts that two objects of the same type are equals.
  * Use CPPUNIT_ASSERT_LESSEQUAL, CPPUNIT_ASSERT_GREATEREQUAL instead of this function.
  * \sa assertion_traits, Asserter::failNotLessEqual().
@@ -262,6 +363,23 @@ void assertGreaterEqual( const T& expected,
                                message );
     }
 }
+
+// An overload that accepts different integral types, to allow numeric literals like '1', '1u'
+// as expected values, without casting them explicitly to the actual type
+template <typename N1, typename N2,
+          typename std::enable_if<is_integer<N1>::value && is_integer<N2>::value
+                                      && std::is_signed<N1>::value == std::is_signed<N2>::value,
+                                  int>::type = 0>
+void assertGreaterEqual( N1 expected,
+                         N2 actual,
+                         SourceLine sourceLine,
+                         const std::string& message )
+{
+    checkExpectedRange<N2>(expected, sourceLine);
+    // At this point, we know that expected value fits into N2 range
+    assertGreaterEqual<N2>(expected, actual, sourceLine, message);
+}
+
 /* A set of macros which allow us to get the line number
  * and file name at the point of an error.
  * Just goes to show that preprocessors do have some
