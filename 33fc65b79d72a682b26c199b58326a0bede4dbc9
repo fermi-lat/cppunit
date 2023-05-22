@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "1dea5292_0e9284be",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 2
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1000994
+      },
+      "writtenOn": "2023-05-22T05:44:37Z",
+      "side": 1,
+      "message": "See https://gerrit.libreoffice.org/c/core/+/152076 for the proposed simplification that this change allows.",
+      "revId": "33fc65b79d72a682b26c199b58326a0bede4dbc9",
+      "serverId": "6622c302-437a-49ad-a91d-55ba7dcf1615"
+    }
+  ]
+}
