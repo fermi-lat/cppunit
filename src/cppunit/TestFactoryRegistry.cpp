@@ -85,7 +85,7 @@ public:
 
 TestFactoryRegistry::TestFactoryRegistry( std::string name ) :
     m_factories(),
-    m_name( name )
+    m_name(std::move(name))
 {
 }
 
