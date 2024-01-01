@@ -8,8 +8,8 @@ CPPUNIT_NS_BEGIN
   
 XmlElement::XmlElement( std::string elementName,
                         std::string content ) 
-  : m_name( elementName )
-  , m_content( content )
+  : m_name(std::move(elementName))
+  , m_content(std::move(content))
   , m_attributes()
   , m_elements()
 {
@@ -18,7 +18,7 @@ XmlElement::XmlElement( std::string elementName,
     
 XmlElement::XmlElement( std::string elementName,
                         int numericContent )
-  : m_name( elementName )
+  : m_name(std::move(elementName))
   , m_content()
   , m_attributes()
   , m_elements()
