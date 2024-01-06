@@ -110,11 +110,11 @@ Asserter::makeNotEqualMessage( const std::string &expectedValue,
 
 
 void
-Asserter::failNotEqual( std::string expected, 
-                        std::string actual, 
+Asserter::failNotEqual( const std::string& expected,
+                        const std::string& actual,
                         const SourceLine &sourceLine,
                         const AdditionalMessage &additionalMessage,
-                        std::string shortDescription )
+                        const std::string& shortDescription )
 {
   fail( makeMessage( makeExpectedEqual(expected),
                      makeActual(actual),
@@ -182,11 +182,11 @@ Asserter::failNotGreaterEqual( std::string expected,
 }
 void
 Asserter::failNotEqualIf( bool shouldFail,
-                          std::string expected, 
-                          std::string actual, 
+                          const std::string& expected,
+                          const std::string& actual,
                           const SourceLine &sourceLine,
                           const AdditionalMessage &additionalMessage,
-                          std::string shortDescription )
+                          const std::string& shortDescription )
 {
   if ( shouldFail )
     failNotEqual( expected, actual, sourceLine, additionalMessage, shortDescription );

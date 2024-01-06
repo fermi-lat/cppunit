@@ -159,11 +159,11 @@ struct Asserter
    *                          what are the differences between the expected and actual value.
    * \param shortDescription Short description for the failure message.
    */
-  [[noreturn]] static void CPPUNIT_API failNotEqual( std::string expected,
-                                        std::string actual,
+  [[noreturn]] static void CPPUNIT_API failNotEqual( const std::string& expected,
+                                        const std::string& actual,
                                         const SourceLine &sourceLine,
                                         const AdditionalMessage &additionalMessage = AdditionalMessage(),
-                                        std::string shortDescription = "equality assertion failed" );
+                                        const std::string& shortDescription = "equality assertion failed" );
 
   /*! \brief Throws an Exception with the specified message and location.
    * \param expected Text describing the expected value.
@@ -231,11 +231,11 @@ struct Asserter
    * \param shortDescription Short description for the failure message.
    */
   static void CPPUNIT_API failNotEqualIf( bool shouldFail,
-                                          std::string expected,
-                                          std::string actual,
+                                          const std::string& expected,
+                                          const std::string& actual,
                                           const SourceLine &sourceLine,
                                           const AdditionalMessage &additionalMessage = AdditionalMessage(),
-                                          std::string shortDescription = "equality assertion failed" );
+                                          const std::string& shortDescription = "equality assertion failed" );
 
 };
 
