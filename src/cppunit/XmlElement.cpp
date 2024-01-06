@@ -74,15 +74,15 @@ XmlElement::setContent( int numericContent )
 
 
 void 
-XmlElement::addAttribute( std::string attributeName,
-                          std::string value  )
+XmlElement::addAttribute( const std::string& attributeName,
+                          const std::string& value  )
 {
   m_attributes.push_back( Attribute( attributeName, value ) );
 }
 
 
 void 
-XmlElement::addAttribute( std::string attributeName,
+XmlElement::addAttribute( const std::string& attributeName,
                           int numericValue )
 {
   addAttribute( attributeName, StringTools::toString( numericValue ) );
@@ -194,7 +194,7 @@ XmlElement::attributesAsString() const
 
 
 std::string 
-XmlElement::escape( std::string value ) const
+XmlElement::escape( const std::string& value ) const
 {
   std::string escaped;
   for ( unsigned int index =0; index < value.length(); ++index )

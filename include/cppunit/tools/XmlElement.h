@@ -79,14 +79,14 @@ public:
    * \param attributeName Name of the attribute. Must not be an empty.
    * \param value Value of the attribute.
    */
-  void addAttribute( std::string attributeName,
-                     std::string value );
+  void addAttribute( const std::string& attributeName,
+                     const std::string& value );
 
   /*! \brief Adds an attribute with the specified numeric value.
    * \param attributeName Name of the attribute. Must not be empty.
    * \param numericValue Numeric value of the attribute.
    */
-  void addAttribute( std::string attributeName,
+  void addAttribute( const std::string& attributeName,
                      int numericValue );
 
   /*! \brief Adds a child element to the element.
@@ -125,7 +125,7 @@ private:
   typedef std::pair<std::string,std::string> Attribute;
 
   std::string attributesAsString() const;
-  std::string escape( std::string value ) const;
+  std::string escape( const std::string& value ) const;
 
 private:
   std::string m_name;
