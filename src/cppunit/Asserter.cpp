@@ -8,7 +8,7 @@ CPPUNIT_NS_BEGIN
 
 // coverity[+kill]
 [[noreturn]] void
-Asserter::fail( std::string message, 
+Asserter::fail( const std::string& message,
                 const SourceLine &sourceLine )
 {
   fail( Message( "assertion failed", message ), sourceLine );
@@ -24,8 +24,8 @@ Asserter::fail( const Message &message,
 
 
 void
-Asserter::failIf( bool shouldFail, 
-                  const Message &message, 
+Asserter::failIf( bool shouldFail,
+                  const Message &message,
                   const SourceLine &sourceLine )
 {
   if ( shouldFail )
@@ -34,8 +34,8 @@ Asserter::failIf( bool shouldFail,
 
 
 void
-Asserter::failIf( bool shouldFail, 
-                  std::string message, 
+Asserter::failIf( bool shouldFail,
+                  const std::string& message,
                   const SourceLine &sourceLine )
 {
   failIf( shouldFail, Message( "assertion failed", message ), sourceLine );
@@ -125,11 +125,11 @@ Asserter::failNotEqual( const std::string& expected,
 
 
 [[noreturn]] void
-Asserter::failNotLess( std::string expected, 
-                        std::string actual, 
-                        const SourceLine &sourceLine,
-                        const AdditionalMessage &additionalMessage,
-                        std::string shortDescription )
+Asserter::failNotLess( const std::string& expected,
+                       const std::string& actual,
+                       const SourceLine &sourceLine,
+                       const AdditionalMessage &additionalMessage,
+                       const std::string& shortDescription )
 {
   fail( makeMessage( makeExpectedLess(expected),
                      makeActual(actual),
@@ -140,11 +140,11 @@ Asserter::failNotLess( std::string expected,
 
 
 [[noreturn]] void
-Asserter::failNotGreater( std::string expected, 
-                        std::string actual, 
-                        const SourceLine &sourceLine,
-                        const AdditionalMessage &additionalMessage,
-                        std::string shortDescription )
+Asserter::failNotGreater( const std::string& expected,
+                          const std::string& actual,
+                          const SourceLine &sourceLine,
+                          const AdditionalMessage &additionalMessage,
+                          const std::string& shortDescription )
 {
   fail( makeMessage( makeExpectedGreater(expected),
                      makeActual(actual),
@@ -154,30 +154,30 @@ Asserter::failNotGreater( std::string expected,
 }
 
 [[noreturn]] void
-Asserter::failNotLessEqual( std::string expected, 
-                            std::string actual, 
+Asserter::failNotLessEqual( const std::string& expected,
+                            const std::string& actual,
                             const SourceLine &sourceLine,
                             const AdditionalMessage &additionalMessage,
-                            std::string shortDescription )
+                            const std::string& shortDescription )
 {
   fail( makeMessage( makeExpectedLessEqual(expected),
                      makeActual(actual),
                      shortDescription,
-                     additionalMessage ), 
+                     additionalMessage ),
         sourceLine );
 }
 
 [[noreturn]] void
-Asserter::failNotGreaterEqual( std::string expected, 
-                            std::string actual, 
-                            const SourceLine &sourceLine,
-                            const AdditionalMessage &additionalMessage,
-                            std::string shortDescription )
+Asserter::failNotGreaterEqual( const std::string& expected,
+                               const std::string& actual,
+                               const SourceLine &sourceLine,
+                               const AdditionalMessage &additionalMessage,
+                               const std::string& shortDescription )
 {
   fail( makeMessage( makeExpectedGreaterEqual(expected),
                      makeActual(actual),
                      shortDescription,
-                     additionalMessage ), 
+                     additionalMessage ),
         sourceLine );
 }
 void

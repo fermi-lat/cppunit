@@ -53,7 +53,7 @@ struct Asserter
   /*! \brief Throws a Exception with the specified message and location.
    * \deprecated Use fail( Message, SourceLine ) instead.
    */
-  [[noreturn]] static void CPPUNIT_API fail( std::string message,
+  [[noreturn]] static void CPPUNIT_API fail( const std::string& message,
                                              const SourceLine &sourceLine = SourceLine() );
 
   /*! \brief Throws a Exception with the specified message and location.
@@ -74,7 +74,7 @@ struct Asserter
    * \param sourceLine Location of the assertion.
    */
   static void CPPUNIT_API failIf( bool shouldFail,
-                                  std::string message,
+                                  const std::string& message,
                                   const SourceLine &sourceLine = SourceLine() );
 
   /*! \brief Returns a expected value string for a message, case equal than
@@ -173,11 +173,11 @@ struct Asserter
    *                          what are the differences between the expected and actual value.
    * \param shortDescription Short description for the failure message.
    */
-  [[noreturn]] static void CPPUNIT_API failNotLess( std::string expected,
-                                                    std::string actual,
+  [[noreturn]] static void CPPUNIT_API failNotLess( const std::string& expected,
+                                                    const std::string& actual,
                                                     const SourceLine &sourceLine,
                                                     const AdditionalMessage &additionalMessage = AdditionalMessage(),
-                                                    std::string shortDescription = "less assertion failed" );
+                                                    const std::string& shortDescription = "less assertion failed" );
 
   /*! \brief Throws an Exception with the specified message and location.
    * \param expected Text describing the expected value.
@@ -187,11 +187,11 @@ struct Asserter
    *                          what are the differences between the expected and actual value.
    * \param shortDescription Short description for the failure message.
    */
-  [[noreturn]] static void CPPUNIT_API failNotGreater( std::string expected,
-                                                       std::string actual,
+  [[noreturn]] static void CPPUNIT_API failNotGreater( const std::string& expected,
+                                                       const std::string& actual,
                                                        const SourceLine &sourceLine,
                                                        const AdditionalMessage &additionalMessage = AdditionalMessage(),
-                                                       std::string shortDescription = "greater assertion failed" );
+                                                       const std::string& shortDescription = "greater assertion failed" );
 
   /*! \brief Throws an Exception with the specified message and location.
    * \param expected Text describing the expected value.
@@ -201,11 +201,11 @@ struct Asserter
    *                          what are the differences between the expected and actual value.
    * \param shortDescription Short description for the failure message.
    */
-  [[noreturn]] static void CPPUNIT_API failNotLessEqual( std::string expected,
-                                                         std::string actual,
+  [[noreturn]] static void CPPUNIT_API failNotLessEqual( const std::string& expected,
+                                                         const std::string& actual,
                                                          const SourceLine &sourceLine,
                                                          const AdditionalMessage &additionalMessage = AdditionalMessage(),
-                                                         std::string shortDescription = "less equal assertion failed" );
+                                                         const std::string& shortDescription = "less equal assertion failed" );
 
   /*! \brief Throws an Exception with the specified message and location.
    * \param expected Text describing the expected value.
@@ -215,11 +215,11 @@ struct Asserter
    *                          what are the differences between the expected and actual value.
    * \param shortDescription Short description for the failure message.
    */
-  [[noreturn]] static void CPPUNIT_API failNotGreaterEqual( std::string expected,
-                                                            std::string actual,
+  [[noreturn]] static void CPPUNIT_API failNotGreaterEqual( const std::string& expected,
+                                                            const std::string& actual,
                                                             const SourceLine &sourceLine,
                                                             const AdditionalMessage &additionalMessage = AdditionalMessage(),
-                                                            std::string shortDescription = "greater equal assertion failed" );  /*! \brief Throws an Exception with the specified message and location.
+                                                            const std::string& shortDescription = "greater equal assertion failed" );  /*! \brief Throws an Exception with the specified message and location.
 
    * \param shouldFail if \c true then the exception is thrown. Otherwise
    *                   nothing happen.
