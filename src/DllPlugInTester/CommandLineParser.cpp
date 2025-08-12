@@ -14,8 +14,7 @@ CommandLineParser::CommandLineParser( int argc,
 {
   for ( int index =1; index < argc; ++index )
   {
-    std::string argument( argv[index ] );
-    m_arguments.push_back( argument );
+    m_arguments.emplace_back(argv[index ]);
   }
 }
 
@@ -78,7 +77,7 @@ CommandLineParser::readNonOptionCommands()
       plugIn.m_parameters = CPPUNIT_NS::PlugInParameters( parameters );
     }
     
-    m_plugIns.push_back( plugIn );
+    m_plugIns.push_back(std::move(plugIn));
 
     getNextArgument();
   }
