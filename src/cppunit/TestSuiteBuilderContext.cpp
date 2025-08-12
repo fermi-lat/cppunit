@@ -66,8 +66,7 @@ TestSuiteBuilderContextBase::addProperty( const std::string &key,
     }
   }
 
-  Property property( key, value );
-  m_properties.push_back( property );
+  m_properties.emplace_back(key, value);
 }
 
 const std::string 
